@@ -19,33 +19,33 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid rgba(55, 65, 81, 0.3);
-            white-space: normal !important;     /* 允許選單內正常換行 */
-            text-overflow: clip !important;     /* 關閉選單點點點 */
-            overflow: visible !important;       /* 允許選單文字完整顯示 */
+            white-space: normal !important;     
+            text-overflow: clip !important;     
+            overflow: visible !important;       
         }
         .suggestion-item:hover {
             background-color: #1f2937;
         }
 
         /* ======================================================= */
-        /* 🎨 歷史猜測表格容器優化：支援手機版左右滑動              */
+        /* 🎨 歷史猜測表格容器優化：智慧型響應式佈局                */
         /* ======================================================= */
-        /* 1. 外層包裹區：當內容超出螢幕寬度時，允許橫向滾動 */
+        /* 1. 外層包裹區：當內容超出螢幕寬度時，才允許橫向滾動 */
         .grid-scroll-wrapper {
             width: 100%;
-            overflow-x: auto;          /* 關鍵：開啟橫向左右滾動 */
-            -webkit-overflow-scrolling: touch; /* 讓手機端滑動更順暢 */
-            padding-bottom: 5px;       /* 留一點空間給滾動條 */
+            overflow-x: auto;          
+            -webkit-overflow-scrolling: touch; 
+            padding-bottom: 5px;       
         }
 
-        /* 2. 表頭與內容列：給予一個固定的最小寬度，防止在手機端被擠壓 */
+        /* 2. 表頭與內容列：在電腦版撐滿 100% 寬度，在手機版啟動最低保護寬度 */
         .grid-header, .guess-row {
             display: grid;
-            /* 重新分配比例：選手(1.4)、位置(0.8)、出生地(0.9)、出生年(0.9)、現任(1.4)、曾效力(1.8) */
-            grid-template-columns: 1.4fr 0.8fr 0.9fr 0.9fr 1.4fr 1.8fr;
+            /* 調整比例：選手(1.3)、位置(0.7)、出生地(0.9)、出生年(0.8)、招牌英雄(1.6)、現任(1.3)、曾效力(1.6) */
+            grid-template-columns: 1.3fr 0.7fr 0.9fr 0.8fr 1.6fr 1.3fr 1.6fr;
             gap: 6px;
             width: 100%;
-            min-width: 580px; /* ✨ 強制表格在小螢幕也有充足空間自然展開，不縮成點點點 */
+            min-width: 100%; /* ✨ 電腦版預設 100% 自適應展開，擺得下就不會出現滾動條！ */
         }
 
         .grid-header {
@@ -62,7 +62,7 @@
             animation: flipIn 0.5s ease;
         }
 
-        /* 3. 歷史格子：徹底拔除點點點，改用自然伸縮顯示完整字 */
+        /* 3. 歷史格子：允許英文字詞自然換行（Word-break），避免因單行過長強行撐開表格 */
         .grid-cell-lol {
             display: flex;
             align-items: center;
@@ -72,8 +72,8 @@
             box-sizing: border-box;
             line-height: 1.2;
             text-align: center;
-            padding: 0 6px;
-            /* 🚫 徹底移除原本的 truncate 點點點設定，讓戰隊字體完整浮現 */
+            padding: 4px 6px;
+            word-break: break-word; /* ✨ 遇到較長隊伍名稱時，在大螢幕允許精緻地上下雙行排版，完美防止滾動條提早出現 */
         }
 
         @keyframes flipIn {
@@ -81,20 +81,25 @@
             100% { transform: rotateX(0deg); opacity: 1; }
         }
 
-        /* 📱 手機端與窄螢幕專屬優化 */
-        @media (max-width: 500px) {
-            .grid-header { gap: 4px; }
-            .guess-row { gap: 4px; }
-            /* 手機版稍微縮小滾動區內的文字大小，讓滑動與閱讀體驗更精緻 */
+        /* ======================================================= */
+        /* 📱 手機端與窄螢幕專屬防變形臨界值設定                    */
+        /* ======================================================= */
+        @media (max-width: 680px) {
+            /* 當螢幕寬度低於 680px，代表一般的直向手機螢幕，強制解鎖最低保護寬度以啟動左右滑動 */
+            .grid-header, .guess-row {
+                min-width: 640px; 
+                gap: 4px;
+            }
             .grid-header > div, .grid-cell-lol {
                 font-size: 0.75rem !important; 
+                padding: 2px 4px;
             }
         }
     </style>
 </head>
 <body class="bg-gray-950 text-white min-h-screen flex flex-col items-center p-4 md:p-8">
 
-    <div class="w-full max-w-md md:max-w-2xl flex justify-between items-center mb-4">
+    <div class="w-full max-w-md md:max-w-3xl flex justify-between items-center mb-4">
         <a href="../" class="text-sm text-pink-400 hover:underline transition flex items-center gap-1 w-fit">
             <span>←</span> 返回遊戲大廳
         </a>
@@ -116,7 +121,7 @@
         <p id="game-subtitle" class="text-gray-400 text-xs md:text-sm mt-2">猜出今天的神祕 LMS / PCS 職業選手（每日更新）</p>
     </header>
 
-    <main class="w-full max-w-md md:max-w-2xl flex flex-col items-center gap-4 md:gap-6">
+    <main class="w-full max-w-md md:max-w-3xl flex flex-col items-center gap-4 md:gap-6">
         
         <div id="search-container" class="w-full relative max-w-md">
             <input type="text" id="search-input" placeholder="載入職業選手資料中..." disabled
@@ -125,14 +130,12 @@
             <div id="autocomplete-list" class="absolute w-full bg-gray-900 border border-gray-700 rounded-xl mt-2 max-h-60 overflow-y-auto hidden z-50 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-sm"></div>
         </div>
 
-        <!-- 歷史猜測表格容器 -->
+        <!-- 歷史猜測表格 -->
         <div class="w-full mt-2 bg-gray-900/40 p-3 md:p-5 rounded-2xl border border-gray-800/80 backdrop-blur-sm shadow-xl overflow-hidden">
-            
-            <!-- 橫向滑動包裹層 -->
             <div class="grid-scroll-wrapper">
                 
                 <div class="grid-header tracking-wider">
-                    <div>選手</div><div>位置</div><div>出生地</div><div>出生年</div><div>現任隊伍</div><div>曾效力隊</div>
+                    <div>選手</div><div>位置</div><div>出生地</div><div>出生年</div><div>招牌英雄</div><div>現任隊伍</div><div>曾效力隊</div>
                 </div>
                 
                 <div id="grid-container" class="flex flex-col gap-2 md:gap-3"></div>
@@ -150,7 +153,7 @@
                 </div>
                 <div class="flex items-start gap-2">
                     <span class="inline-block bg-yellow-500 text-black font-bold text-[10px] md:text-xs px-2 py-0.5 rounded text-center min-w-[50px]">黃色</span>
-                    <span>：部分正確／接近。在【出生年】代表數字不正確，但會以 <b class="text-gray-300">↑ (代表答案更大/更晚)</b> 或 <b class="text-gray-300">↓ (代表答案更小/更早)</b> 提示相對關係。在【曾效力隊伍】代表有部分重疊。</span>
+                    <span>：部分正確／接近。在【出生年】代表數字不正確，但會以 <b class="text-gray-300">↑ (代表答案更大/更晚)</b> 或 <b class="text-gray-300">↓ (代表答案更小/更早)</b> 提示相對關係。在【招牌英雄】與【曾效力隊伍】代表有部分重疊。</span>
                 </div>
                 <div class="flex items-start gap-2">
                     <span class="inline-block bg-gray-800 text-gray-400 font-bold text-[10px] md:text-xs px-2 py-0.5 rounded text-center min-w-[50px] border border-gray-700/30">灰色</span>
@@ -316,13 +319,11 @@
                 });
             }
 
-            // 處理猜測與比對邏輯（黃綠紅燈）
             function handleGuess(player) {
                 if (guessHistory.some(g => g.id === player.id)) return;
 
                 const row = document.createElement('div');
-                // ✨ 修正：將 row 類別名直接綁定為我們寫好的 CSS 樣式類別（.guess-row），確保寬度與比例同步生效
-                row.className = "guess-row h-12 md:h-14 transition-all duration-300";
+                row.className = "guess-row min-h-12 md:min-h-14 transition-all duration-300";
 
                 // 1. 位置比對
                 const posMatch = player.position === TODAY_ANSWER.position;
@@ -337,11 +338,26 @@
                 const yearArrow = player.birth_year < TODAY_ANSWER.birth_year ? "↑" : (player.birth_year > TODAY_ANSWER.birth_year ? "↓" : "");
                 const yearData = { color: yearMatch ? "bg-green-600" : "bg-yellow-500", emoji: yearMatch ? "🟩" : "🟨" };
 
-                // 4. 現任隊伍比對
+                // 4. 招牌英雄比對
+                let heroMatchStatus = "absent";
+                if (player["招牌英雄"] === TODAY_ANSWER["招牌英雄"] && player["招牌英雄"] !== "None") {
+                    heroMatchStatus = "correct";
+                } else {
+                    const guessHeroArr = player["招牌英雄"].split('、');
+                    const answerHeroArr = TODAY_ANSWER["招牌英雄"].split('、');
+                    const hasOverlap = guessHeroArr.some(h => answerHeroArr.includes(h) && h !== "None");
+                    if (hasOverlap) heroMatchStatus = "present";
+                }
+                const heroData = {
+                    color: heroMatchStatus === "correct" ? "bg-green-600" : (heroMatchStatus === "present" ? "bg-yellow-500" : "bg-gray-800 border border-gray-700/50"),
+                    emoji: heroMatchStatus === "correct" ? "🟩" : (heroMatchStatus === "present" ? "🟨" : "⬛")
+                };
+
+                // 5. 現任隊伍比對
                 const teamMatch = player.current_team === TODAY_ANSWER.current_team;
                 const teamData = { color: teamMatch ? "bg-green-600" : "bg-gray-800 border border-gray-700/50", emoji: teamMatch ? "🟩" : "⬛" };
 
-                // 5. 曾效力隊伍比對
+                // 6. 曾效力隊伍比對
                 let pastMatchStatus = "absent";
                 if (player.past_teams === TODAY_ANSWER.past_teams && player.past_teams !== "無前效力隊伍") {
                     pastMatchStatus = "correct";
@@ -351,21 +367,20 @@
                     const hasOverlap = guessPastArr.some(t => answerPastArr.includes(t) && t !== "無前效力隊伍");
                     if (hasOverlap) pastMatchStatus = "present";
                 }
-                
                 const pastData = {
                     color: pastMatchStatus === "correct" ? "bg-green-600" : (pastMatchStatus === "present" ? "bg-yellow-500" : "bg-gray-800 border border-gray-700/50"),
                     emoji: pastMatchStatus === "correct" ? "🟩" : (pastMatchStatus === "present" ? "🟨" : "⬛")
                 };
 
-                const currentEmojis = `${posData.emoji}${countryData.emoji}${yearData.emoji}${teamData.emoji}${pastData.emoji}`;
+                const currentEmojis = `${posData.emoji}${countryData.emoji}${yearData.emoji}${heroData.emoji}${teamData.emoji}${pastData.emoji}`;
                 guessHistory.push({ id: player.id, emojis: currentEmojis });
 
-                // ✨ 修正：將內部元素的 class 統一換上帶有橫向滾動彈性的 .grid-cell-lol，完美呈現完整字串
                 row.innerHTML = `
                     <div class="grid-cell-lol bg-gray-800/80 border border-gray-700/30 text-white" title="${player.name}">${player.name}</div>
                     <div class="grid-cell-lol ${posData.color} shadow-md text-white" title="${player.position}">${player.position}</div>
                     <div class="grid-cell-lol ${countryData.color} shadow-md text-white" title="${player.country}">${player.country}</div>
                     <div class="grid-cell-lol ${yearData.color} shadow-md text-white">${player.birth_year || '未知'}${yearArrow}</div>
+                    <div class="grid-cell-lol ${heroData.color} shadow-md text-white" title="${player["招牌英雄"]}">${player["招牌英雄"]}</div>
                     <div class="grid-cell-lol ${teamData.color} shadow-md text-white" title="${player.current_team}">${player.current_team}</div>
                     <div class="grid-cell-lol ${pastData.color} shadow-md text-white" title="${player.past_teams}">${player.past_teams}</div>
                 `;
