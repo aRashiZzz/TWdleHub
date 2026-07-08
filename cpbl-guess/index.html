@@ -157,10 +157,7 @@
         function handleGuess(player) {
             if (guessHistory.some(g => g.id === player.id)) return;
 
-            const row = document.createElement('div');
-            row.className = "grid grid-cols-6 gap-1 w-full text-center text-sm font-bold h-12";
-
-            // (中間變色判定邏輯保持不變...)
+            // 1. 判定各項欄位的顏色與箭頭
             const teamMatch = player.team === TODAY_ANSWER.team;
             const teamData = { color: teamMatch ? "bg-green-600" : "bg-gray-700", emoji: teamMatch ? "🟩" : "⬛" };
             const posData = checkPosition(player.position, TODAY_ANSWER.position);
@@ -174,20 +171,45 @@
             const ageData = { color: ageMatch ? "bg-green-600" : "bg-yellow-500", emoji: ageMatch ? "🟩" : "🟨" };
 
             const currentEmojis = `${teamData.emoji}${posData.emoji}${handData.emoji}${numData.emoji}${ageData.emoji}`;
-            guessHistory.push({ id: player.id, emojis: currentEmojis });
+            
+            // 2. 將新猜測加入紀錄（這時它在陣列的最末端）
+            guessHistory.push({ 
+                id: player.id, 
+                name: player.name,
+                team: player.team,
+                position: player.position,
+                main_hand: player.main_hand,
+                number: player.number,
+                numArrow: numArrow,
+                numDataColor: numData.color,
+                age: player.age,
+                ageArrow: ageArrow,
+                ageDataColor: ageData.color,
+                emojis: currentEmojis,
+                teamColor: teamData.color,
+                posColor: posData.color,
+                handColor: handData.color
+            });
 
-            row.innerHTML = `
-                <div class="flex items-center justify-center bg-gray-800 rounded text-xs px-0.5 font-medium">${player.name}</div>
-                <div class="flex items-center justify-center ${teamData.color} rounded text-xs px-0.5">${player.team.replace("7-ELEVEn", "")}</div>
-                <div class="flex items-center justify-center ${posData.color} rounded text-xs">${player.position}</div>
-                <div class="flex items-center justify-center ${handData.color} rounded">${player.main_hand}</div>
-                <div class="flex items-center justify-center ${numData.color} rounded">${player.number}${numArrow}</div>
-                <div class="flex items-center justify-center ${ageData.color} rounded">${player.age}${ageArrow}</div>
-            `;
+            // 3. 🔄 重新渲染畫面：清空容器，並「反轉陣列」讓最新的在最上面
+            gridContainer.innerHTML = ''; 
+            
+            // 使用 slice().reverse() 確保最新猜的（最後 push 的）會最先被印出來（在最上面）
+            guessHistory.slice().reverse().forEach(g => {
+                const row = document.createElement('div');
+                row.className = "grid grid-cols-6 gap-1 w-full text-center text-sm font-bold h-12 mb-2"; // 加上 mb-2 保持間距
+                row.innerHTML = `
+                    <div class="flex items-center justify-center bg-gray-800 rounded text-xs px-0.5 font-medium">${g.name}</div>
+                    <div class="flex items-center justify-center ${g.teamColor} rounded text-xs px-0.5">${g.team.replace("7-ELEVEn", "")}</div>
+                    <div class="flex items-center justify-center ${g.posColor} rounded text-xs">${g.position}</div>
+                    <div class="flex items-center justify-center ${g.handColor} rounded">${g.main_hand}</div>
+                    <div class="flex items-center justify-center ${g.numDataColor} rounded">${g.number}${g.numArrow}</div>
+                    <div class="flex items-center justify-center ${g.ageDataColor} rounded">${g.age}${g.ageArrow}</div>
+                `;
+                gridContainer.appendChild(row); // 這裡改用 appendChild，因為順序已經在上面反轉好了
+            });
 
-            // ======= 💡 關鍵修改處 1：改用 prepend 插到最前面 =======
-            gridContainer.prepend(row); 
-
+            // 4. 判斷遊戲是否結束
             if (player.id === TODAY_ANSWER.id) {
                 isGameOver = true;
                 showResult(true);
