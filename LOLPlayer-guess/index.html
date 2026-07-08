@@ -28,12 +28,19 @@
         }
 
         /* ======================================================= */
-        /* 🎨 歷史猜測表格比例優化：放寬電腦版橫向空間              */
+        /* 🎨 歷史猜測表格容器優化：回復 6 欄，空間大解放           */
         /* ======================================================= */
+        .grid-scroll-wrapper {
+            width: 100%;
+            overflow-x: auto;          
+            -webkit-overflow-scrolling: touch; 
+            padding-bottom: 5px;       
+        }
+
+        /* 調整為 6 欄比例：選手(1.4)、位置(0.9)、出生地(1fr)、出生年(1fr)、現任(1.5)、曾效力(2.2) */
         .grid-header, .guess-row {
             display: grid;
-            /* 微調比例：給招牌英雄(2.2fr)與曾效力隊(2.2fr)極大的空間，其餘精簡 */
-            grid-template-columns: 1.2fr 1fr 1fr 1fr 2.2fr 1.3fr 2.2fr;
+            grid-template-columns: 1.4fr 0.9fr 1fr 1fr 1.5fr 2.2fr;
             gap: 8px;
             width: 100%;
             min-width: 100%; 
@@ -43,7 +50,7 @@
             font-weight: bold;
             text-align: center;
             margin-bottom: 8px;
-            font-size: 0.95rem; /* 稍微放大字體更具電競感 */
+            font-size: 0.95rem; 
             color: #94a3b8;
             padding: 0 2px;
         }
@@ -53,7 +60,6 @@
             animation: flipIn 0.5s ease;
         }
 
-        /* 歷史格子：維持自然伸縮，但透過優化 padding 減輕視覺壓縮感 */
         .grid-cell-lol {
             display: flex;
             align-items: center;
@@ -63,7 +69,7 @@
             box-sizing: border-box;
             line-height: 1.4;
             text-align: center;
-            padding: 6px 8px; /* 增加上下左右內襯，讓長文字換行時也極具呼吸感 */
+            padding: 6px 8px; 
             word-break: break-word; 
         }
 
@@ -73,10 +79,9 @@
         }
 
         /* 📱 手機端與窄螢幕專屬防變形臨界值設定 */
-        @media (max-width: 768px) {
-            /* 在螢幕不夠大時（小於768px），為了不讓文字擠壓，強制解鎖固定寬度以利左右滑動 */
+        @media (max-width: 680px) {
             .grid-header, .guess-row {
-                min-width: 760px; /* 提高手機端保護寬度，確保 7 欄都能舒展開來 */
+                min-width: 580px; /* 6 欄狀態下，手機端保護寬度只需 580px 即可完全展開 */
                 gap: 4px;
             }
             .grid-header > div, .grid-cell-lol {
@@ -84,26 +89,11 @@
                 padding: 4px 4px;
             }
         }
-
-        /* ======================================================= */
-        /* 📱 手機端與窄螢幕專屬防變形臨界值設定                    */
-        /* ======================================================= */
-        @media (max-width: 680px) {
-            /* 當螢幕寬度低於 680px，代表一般的直向手機螢幕，強制解鎖最低保護寬度以啟動左右滑動 */
-            .grid-header, .guess-row {
-                min-width: 640px; 
-                gap: 4px;
-            }
-            .grid-header > div, .grid-cell-lol {
-                font-size: 0.75rem !important; 
-                padding: 2px 4px;
-            }
-        }
     </style>
 </head>
 <body class="bg-gray-950 text-white min-h-screen flex flex-col items-center p-4 md:p-8">
 
-    <div class="w-full max-w-md md:max-w-5xl flex justify-between items-center mb-4">
+    <div class="w-full max-w-md md:max-w-3xl flex justify-between items-center mb-4">
         <a href="../" class="text-sm text-pink-400 hover:underline transition flex items-center gap-1 w-fit">
             <span>←</span> 返回遊戲大廳
         </a>
@@ -125,8 +115,18 @@
         <p id="game-subtitle" class="text-gray-400 text-xs md:text-sm mt-2">猜出今天的神祕 LMS / PCS 職業選手（每日更新）</p>
     </header>
 
-    <main class="w-full max-w-md md:max-w-5xl flex flex-col items-center gap-4 md:gap-6">
+    <main class="w-full max-w-md md:max-w-3xl flex flex-col items-center gap-4 md:gap-6">
         
+        <div class="w-full bg-pink-950/20 border border-pink-900/40 rounded-2xl p-4 flex flex-col gap-1 shadow-inner">
+            <div class="text-xs font-black tracking-widest text-pink-400 flex justify-between">
+                <span>💡 招牌英雄線索解鎖 (<span id="hint-count">0</span>)</span>
+                <span id="hint-status-text" class="text-gray-500 font-normal">📢 猜錯將解鎖技能角色線索</span>
+            </div>
+            <div id="hero-hint-display" class="text-sm md:text-base font-bold text-gray-200 mt-1 transition-all">
+                尚未開始猜測，請輸入選手 ID 試試看！
+            </div>
+        </div>
+
         <div id="search-container" class="w-full relative max-w-md">
             <input type="text" id="search-input" placeholder="載入職業選手資料中..." disabled
                    class="w-full p-3 md:p-4 rounded-xl bg-gray-950 border-2 border-gray-800 text-white focus:outline-none focus:border-pink-500 text-base md:text-lg transition-all opacity-50 shadow-inner">
@@ -134,12 +134,11 @@
             <div id="autocomplete-list" class="absolute w-full bg-gray-900 border border-gray-700 rounded-xl mt-2 max-h-60 overflow-y-auto hidden z-50 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-sm"></div>
         </div>
 
-        <!-- 歷史猜測表格 -->
         <div class="w-full mt-2 bg-gray-900/40 p-3 md:p-5 rounded-2xl border border-gray-800/80 backdrop-blur-sm shadow-xl overflow-hidden">
             <div class="grid-scroll-wrapper">
                 
                 <div class="grid-header tracking-wider">
-                    <div>選手</div><div>位置</div><div>出生地</div><div>出生年</div><div>招牌英雄</div><div>現任隊伍</div><div>曾效力隊</div>
+                    <div>選手</div><div>位置</div><div>出生地</div><div>出生年</div><div>現任隊伍</div><div>曾效力隊</div>
                 </div>
                 
                 <div id="grid-container" class="flex flex-col gap-2 md:gap-3"></div>
@@ -157,7 +156,7 @@
                 </div>
                 <div class="flex items-start gap-2">
                     <span class="inline-block bg-yellow-500 text-black font-bold text-[10px] md:text-xs px-2 py-0.5 rounded text-center min-w-[50px]">黃色</span>
-                    <span>：部分正確／接近。在【出生年】代表數字不正確，但會以 <b class="text-gray-300">↑ (代表答案更大/更晚)</b> 或 <b class="text-gray-300">↓ (代表答案更小/更早)</b> 提示相對關係。在【招牌英雄】與【曾效力隊伍】代表有部分重疊。</span>
+                    <span>：部分正確／接近。在【出生年】代表數字不正確，但會以 <b class="text-gray-300">↑ (代表答案更大/更晚)</b> 或 <b class="text-gray-300">↓ (代表答案更小/更早)</b> 提示相對關係。在【曾效力隊伍】代表有部分重疊。</span>
                 </div>
                 <div class="flex items-start gap-2">
                     <span class="inline-block bg-gray-800 text-gray-400 font-bold text-[10px] md:text-xs px-2 py-0.5 rounded text-center min-w-[50px] border border-gray-700/30">灰色</span>
@@ -199,6 +198,7 @@
             let guessHistory = [];
             let isGameOver = false;
             let currentGameMode = 'daily';
+            let answerHeroList = []; // 儲存今日答案拆開後的英雄陣列
 
             const searchInput = document.getElementById('search-input');
             const autocompleteList = document.getElementById('autocomplete-list');
@@ -243,6 +243,11 @@
                 gridContainer.innerHTML = '';
                 searchInput.value = '';
                 searchInput.disabled = false;
+                
+                // 重置提示看板
+                document.getElementById('hint-count').innerText = '0';
+                document.getElementById('hero-hint-display').innerText = '尚未開始猜測，請輸入選手 ID 試試看！';
+                document.getElementById('hint-status-text').innerText = '📢 猜錯將解鎖技能角色線索';
 
                 if (currentGameMode === 'daily') {
                     const todayStr = new Date().toISOString().slice(0, 10);
@@ -256,6 +261,17 @@
                     gameSubtitle.innerText = "無限遊玩模式：神秘電競選手已隨機重置！";
                     searchInput.placeholder = "輸入選手 ID，盡情猜測吧！";
                 }
+
+                // ✨ 解析今日角色的招牌英雄清單
+                const rawHeroes = TODAY_ANSWER["招牌英雄"] || "None";
+                if (rawHeroes === "None" || rawHeroes === "" || rawHeroes === "None ") {
+                    answerHeroList = ["無"];
+                } else {
+                    // 把「、」切開變成陣列
+                    answerHeroList = rawHeroes.split('、').map(h => h.strip ? h.strip() : h.trim()).filter(h => h);
+                    if (answerHeroList.length === 0) answerHeroList = ["無"];
+                }
+
                 //console.log("今日答案（防作弊隱蔽）：", TODAY_ANSWER.name);
             }
 
@@ -323,11 +339,40 @@
                 });
             }
 
+            // 更新招牌英雄提示面板的漸進式機制
+            function updateHeroHintPanel() {
+                const count = guessHistory.length;
+                document.getElementById('hint-count').innerText = count;
+
+                if (answerHeroList[0] === "無") {
+                    document.getElementById('hero-hint-display').innerHTML = `<span class="text-gray-400">該選手在 Wiki 中未登錄招牌英雄資料 (無)</span>`;
+                    document.getElementById('hint-status-text').innerText = "已解鎖全部線索";
+                    return;
+                }
+
+                // 根據猜錯次數，依序抓取前 N 個英雄
+                const visibleCount = Math.min(count, answerHeroList.length);
+                const revealedHeroes = answerHeroList.slice(0, visibleCount);
+
+                if (revealedHeroes.length > 0) {
+                    let hintHtml = `✨ 已知招牌角色：<span class="text-pink-400 font-black">${revealedHeroes.join(' 、 ')}</span>`;
+                    
+                    if (visibleCount < answerHeroList.length) {
+                        hintHtml += ` <span class="text-xs text-gray-500 font-normal ml-2">(再猜錯一次解鎖下一個英雄)</span>`;
+                        document.getElementById('hint-status-text').innerText = "⚡ 線索持續解鎖中...";
+                    } else {
+                        hintHtml += ` <span class="text-xs text-gray-500 font-normal ml-2">(已全數解鎖)</span>`;
+                        document.getElementById('hint-status-text').innerText = "已解鎖全部線索";
+                    }
+                    document.getElementById('hero-hint-display').innerHTML = hintHtml;
+                }
+            }
+
             function handleGuess(player) {
                 if (guessHistory.some(g => g.id === player.id)) return;
 
                 const row = document.createElement('div');
-                row.className = "guess-row min-h-12 md:min-h-14 transition-all duration-300";
+                row.className = "guess-row h-12 md:h-14 transition-all duration-300";
 
                 // 1. 位置比對
                 const posMatch = player.position === TODAY_ANSWER.position;
@@ -337,31 +382,16 @@
                 const countryMatch = player.country === TODAY_ANSWER.country;
                 const countryData = { color: countryMatch ? "bg-green-600" : "bg-gray-800 border border-gray-700/50", emoji: countryMatch ? "🟩" : "⬛" };
 
-                // 3. 出生年比對（含箭頭）
+                // 3. 出生年比對
                 const yearMatch = player.birth_year === TODAY_ANSWER.birth_year;
                 const yearArrow = player.birth_year < TODAY_ANSWER.birth_year ? "↑" : (player.birth_year > TODAY_ANSWER.birth_year ? "↓" : "");
                 const yearData = { color: yearMatch ? "bg-green-600" : "bg-yellow-500", emoji: yearMatch ? "🟩" : "🟨" };
 
-                // 4. 招牌英雄比對
-                let heroMatchStatus = "absent";
-                if (player["招牌英雄"] === TODAY_ANSWER["招牌英雄"] && player["招牌英雄"] !== "None") {
-                    heroMatchStatus = "correct";
-                } else {
-                    const guessHeroArr = player["招牌英雄"].split('、');
-                    const answerHeroArr = TODAY_ANSWER["招牌英雄"].split('、');
-                    const hasOverlap = guessHeroArr.some(h => answerHeroArr.includes(h) && h !== "None");
-                    if (hasOverlap) heroMatchStatus = "present";
-                }
-                const heroData = {
-                    color: heroMatchStatus === "correct" ? "bg-green-600" : (heroMatchStatus === "present" ? "bg-yellow-500" : "bg-gray-800 border border-gray-700/50"),
-                    emoji: heroMatchStatus === "correct" ? "🟩" : (heroMatchStatus === "present" ? "🟨" : "⬛")
-                };
-
-                // 5. 現任隊伍比對
+                // 4. 現任隊伍比對
                 const teamMatch = player.current_team === TODAY_ANSWER.current_team;
                 const teamData = { color: teamMatch ? "bg-green-600" : "bg-gray-800 border border-gray-700/50", emoji: teamMatch ? "🟩" : "⬛" };
 
-                // 6. 曾效力隊伍比對
+                // 5. 曾效力隊伍比對
                 let pastMatchStatus = "absent";
                 if (player.past_teams === TODAY_ANSWER.past_teams && player.past_teams !== "無前效力隊伍") {
                     pastMatchStatus = "correct";
@@ -376,20 +406,24 @@
                     emoji: pastMatchStatus === "correct" ? "🟩" : (pastMatchStatus === "present" ? "🟨" : "⬛")
                 };
 
-                const currentEmojis = `${posData.emoji}${countryData.emoji}${yearData.emoji}${heroData.emoji}${teamData.emoji}${pastData.emoji}`;
+                // 分享縮回 5 欄 Emoji
+                const currentEmojis = `${posData.emoji}${countryData.emoji}${yearData.emoji}${teamData.emoji}${pastData.emoji}`;
                 guessHistory.push({ id: player.id, emojis: currentEmojis });
 
+                // 渲染回歸 6 個方格的 HTML 結構
                 row.innerHTML = `
                     <div class="grid-cell-lol bg-gray-800/80 border border-gray-700/30 text-white" title="${player.name}">${player.name}</div>
                     <div class="grid-cell-lol ${posData.color} shadow-md text-white" title="${player.position}">${player.position}</div>
                     <div class="grid-cell-lol ${countryData.color} shadow-md text-white" title="${player.country}">${player.country}</div>
                     <div class="grid-cell-lol ${yearData.color} shadow-md text-white">${player.birth_year || '未知'}${yearArrow}</div>
-                    <div class="grid-cell-lol ${heroData.color} shadow-md text-white" title="${player["招牌英雄"]}">${player["招牌英雄"]}</div>
                     <div class="grid-cell-lol ${teamData.color} shadow-md text-white" title="${player.current_team}">${player.current_team}</div>
                     <div class="grid-cell-lol ${pastData.color} shadow-md text-white" title="${player.past_teams}">${player.past_teams}</div>
                 `;
 
                 gridContainer.prepend(row);
+                
+                // ✨ 觸發：更新頂部的招牌英雄漸進式提示看板
+                updateHeroHintPanel();
 
                 if (player.id === TODAY_ANSWER.id) {
                     isGameOver = true;
@@ -408,7 +442,7 @@
                     ? `你花了 ${guessHistory.length} 次猜出選手：${TODAY_ANSWER.name}！` 
                     : `可惜了！正確答案是：${TODAY_ANSWER.name}`;
                 
-                document.getElementById('modal-hero-hint').innerText = `🏆 該選手招牌英雄：${TODAY_ANSWER.招牌英雄}`;
+                document.getElementById('modal-hero-hint').innerText = `🏆 該選手全招牌英雄：${TODAY_ANSWER.招牌英雄}`;
 
                 const todayStrTW = new Date().toLocaleDateString('zh-TW');
                 const modeTag = currentGameMode === 'daily' ? '每日挑戰' : '無限遊玩';
