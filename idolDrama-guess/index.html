@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台偶 Dle - 台灣偶像劇猜謎遊戲</title>
+    <style>
+        :root {
+            --color-correct: #66bb6a;
+            --color-present: #ffca28;
+            --color-absent: #ef5350;
+            --color-bg: #f5f6fa;
+            --color-card: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--color-bg);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #333;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            margin: 0;
+            color: #e91e63;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--color-card);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        /* 提示區塊 */
+        .hint-section {
+            background: #fff0f5;
+            border-left: 5px solid #e91e63;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .hint-title {
+            font-weight: bold;
+            color: #e91e63;
+            margin-bottom: 5px;
+        }
+
+        /* 輸入區塊 */
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: #e91e63;
+        }
+
+        button {
+            padding: 12px 24px;
+            background-color: #e91e63;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #c2185b;
+        }
+
+        /* 下拉自動完成選單 */
+        .autocomplete-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* 歷史猜測表格 */
+        .grid-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1.5fr 1fr 1fr;
+            gap: 5px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        .guess-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1.5fr 1fr 1fr;
+            gap: 5px;
+            margin-bottom: 5px;
+            animation: flipIn 0.5s ease;
+        }
+
+        .grid-cell {
+            background-color: #eee;
+            padding: 10px 2px;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            word-break: break-all;
+        }
+
+        .cell-correct { background-color: var(--color-correct); }
+        .cell-present { background-color: var(--color-present); }
+        .cell-absent { background-color: var(--color-absent); }
+
+        @keyframes flipIn {
+            0% { transform: rotateX(-90deg); opacity: 0; }
+            100% { transform: rotateX(0deg); opacity: 1; }
+        }
+
+        .message {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 6px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🎬 台偶 Dle</h1>
+        <div class="subtitle">每天一題，憑線索猜出經典台灣偶像劇！</div>
+    </header>
+
+    <div class="game-container">
+        <div class="hint-section">
+            <div class="hint-title">💡 劇中演員提示 (<span id="hint-count">0</span>)</div>
+            <div id="hint-actors">尚未開始猜測，請輸入劇名試試看！</div>
+        </div>
+
+        <div class="input-section">
+            <input type="text" id="guess-input" placeholder="請輸入劇名（例如：流星花園）..." autocomplete="off">
+            <button id="submit-btn">送出</button>
+            <div id="suggestions" class="autocomplete-suggestions" style="display: none;"></div>
+        </div>
+
+        <div id="results-table" style="display: none;">
+            <div class="grid-header">
+                <div>劇名</div>
+                <div>年份</div>
+                <div>首播</div>
+                <div>頻道</div>
+                <div>集數</div>
+                <div>字數</div>
+            </div>
+            <div id="guess-rows-container"></div>
+        </div>
+
+        <div id="game-message" class="message"></div>
+    </div>
+
+    <script>
+        let dramaDatabase = [];
+        let todayAnswer = null;
+        let guessedCount = 0;
+        let gameActive = true;
+        let answerActors = []; // 儲存今日答案的所有演員
+
+        // 1. 初始化：讀取本地 CSV 檔案
+        async function loadCSV() {
+            try {
+                // 這裡讀取你爬好的檔案
+                const response = await fetch('taiwan_idols_database_v3.csv');
+                const data = await response.text();
+                
+                // 解析 CSV (簡單解析，考慮到逗號分隔)
+                const lines = data.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+                
+                // 略過第 0 行標頭 (年份,首播日期,頻道,集數,劇名,主演)
+                for(let i = 1; i < lines.length; i++) {
+                    const row = parseCSVLine(lines[i]);
+                    if(row.length >= 6) {
+                        dramaDatabase.push({
+                            year: row[0].replace('年',''),        // 2001
+                            date: row[1].trim(),                   // 4月12日
+                            channel: row[2].trim(),                // 華視
+                            episodes: parseInt(row[3]) || 0,       // 24
+                            title: row[4].trim(),                  // 流星花園
+                            actors: row[5].split(/[、，, ]+/).map(a => a.trim()).filter(a => a) // 演員陣容陣列
+                        });
+                    }
+                }
+
+                if(dramaDatabase.length > 0) {
+                    pickTodayAnswer();
+                    initAutocomplete();
+                } else {
+                    alert("資料庫內無資料，請確認 CSV 檔案格式！");
+                }
+            } catch (error) {
+                console.error("讀取 CSV 錯誤:", error);
+                document.getElementById('hint-actors').innerText = "❌ 無法讀取 CSV 檔案，請確保使用本機伺服器(Live Server)開啟本網頁。";
+            }
+        }
+
+        // 處理解析 CSV 中可能包含引號或特殊空白的行
+        function parseCSVLine(text) {
+            let p = '', r = [];
+            let q = false;
+            for (let i = 0; i < text.length; i++) {
+                let c = text[i];
+                if (c === '"') { q = !q; }
+                else if (c === ',' && !q) { r.push(p); p = ''; }
+                else { p += c; }
+            }
+            r.push(p);
+            return r;
+        }
+
+        // 2. 依日期鎖定全網不變的每日題目
+        function pickTodayAnswer() {
+            const today = new Date();
+            const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+            
+            // 使用日期偽隨機數選取一題
+            const index = dateSeed % dramaDatabase.length;
+            todayAnswer = dramaDatabase[index];
+            
+            // 洗牌演員順序，讓每次提示隨機
+            answerActors = [...todayAnswer.actors].sort(() => Math.random() - 0.5);
+            console.log("今日答案（調試用）：", todayAnswer.title);
+        }
+
+        // 3. 自動完成選單 (Autocomplete)
+        function initAutocomplete() {
+            const input = document.getElementById('guess-input');
+            const suggBox = document.getElementById('suggestions');
+
+            input.addEventListener('input', () => {
+                const val = input.value.trim().toLowerCase();
+                suggBox.innerHTML = '';
+                if (!val) { suggBox.style.display = 'none'; return; }
+
+                const matches = dramaDatabase.filter(d => d.title.toLowerCase().includes(val)).slice(0, 5);
+                
+                if(matches.length > 0) {
+                    matches.forEach(m => {
+                        const div = document.createElement('div');
+                        div.className = 'suggestion-item';
+                        div.innerText = m.title;
+                        div.addEventListener('click', () => {
+                            input.value = m.title;
+                            suggBox.style.display = 'none';
+                        });
+                        suggBox.appendChild(div);
+                    });
+                    suggBox.style.display = 'block';
+                } else {
+                    suggBox.style.display = 'none';
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (e.target !== input) suggBox.style.display = 'none';
+            });
+        }
+
+        // 4. 判斷與送出猜測
+        function handleGuess() {
+            if (!gameActive) return;
+            const input = document.getElementById('guess-input');
+            const guessTitle = input.value.trim();
+            
+            const userGuess = dramaDatabase.find(d => d.title.toLowerCase() === guessTitle.toLowerCase());
+            if (!userGuess) {
+                alert("找不到這部偶像劇，請選擇下拉選單內有的劇名喔！");
+                return;
+            }
+
+            guessedCount++;
+            input.value = '';
+            document.getElementById('results-table').style.display = 'block';
+
+            // 執行比對並繪製格子
+            renderRow(userGuess);
+            // 更新演員提示
+            updateActorHint();
+
+            // 檢查勝負
+            if (userGuess.title === todayAnswer.title) {
+                endGame(true, `🎉 太強了！答案就是《${todayAnswer.title}》！你一共猜了 ${guessedCount} 次。`);
+            }
+        }
+
+        // 5. 繪製比對格子 (比對演算法)
+        function renderRow(guess) {
+            const container = document.getElementById('guess-rows-container');
+            const row = document.createElement('div');
+            row.className = 'guess-row';
+
+            // 欄位定義與比對邏輯
+            const fields = [
+                { val: guess.title, status: guess.title === todayAnswer.title ? 'correct' : 'absent' },
+                { 
+                    val: guess.year + "年", 
+                    status: guess.year === todayAnswer.year ? 'correct' : (Math.abs(guess.year - todayAnswer.year) <= 3 ? 'present' : 'absent') 
+                    // 年份相同綠燈，差3年內黃燈，其餘紅燈
+                },
+                { val: guess.date, status: guess.date === todayAnswer.date ? 'correct' : 'absent' },
+                { 
+                    val: guess.channel, 
+                    status: guess.channel === todayAnswer.channel ? 'correct' : (todayAnswer.channel.includes(guess.channel) || guess.channel.includes(todayAnswer.channel) ? 'present' : 'absent')
+                    // 頻道部分重疊給黃燈（例如 華視 包含 華視東森）
+                },
+                { 
+                    val: guess.episodes + "集", 
+                    status: guess.episodes === todayAnswer.episodes ? 'correct' : (Math.abs(guess.episodes - todayAnswer.episodes) <= 5 ? 'present' : 'absent')
+                    // 集數差5集內黃燈
+                },
+                { 
+                    val: guess.title.length + "字", 
+                    status: guess.title.length === todayAnswer.title.length ? 'correct' : 'absent' 
+                }
+            ];
+
+            fields.forEach(f => {
+                const cell = document.createElement('div');
+                cell.className = `grid-cell cell-${f.status}`;
+                cell.innerText = f.val;
+                row.appendChild(cell);
+            });
+
+            container.insertBefore(row, container.firstChild);
+        }
+
+        // 6. 動態演員提示機制
+        function updateActorHint() {
+            document.getElementById('hint-count').innerText = guessedCount;
+            // 每次猜測就多拿一個演員，最多不超過該劇總演員數
+            const visibleCount = Math.min(guessedCount, answerActors.length);
+            const revealed = answerActors.slice(0, visibleCount);
+
+            if(revealed.length > 0) {
+                document.getElementById('hint-actors').innerHTML = `
+                    <strong>已解鎖演員：</strong> ${revealed.join(' 、 ')} 
+                    ${visibleCount < answerActors.length ? '<br><small style="color:#999">(再猜錯一次會解鎖下一個演員)</small>' : '<br><small style="color:#999">(已解鎖所有主要演員)</small>'}
+                `;
+            }
+        }
+
+        function endGame(win, msg) {
+            gameActive = false;
+            const msgBox = document.getElementById('game-message');
+            msgBox.style.display = 'block';
+            msgBox.style.backgroundColor = win ? '#e8f5e9' : '#ffebee';
+            msgBox.style.color = win ? '#2e7d32' : '#c62828';
+            msgBox.innerText = msg;
+            document.getElementById('submit-btn').disabled = true;
+            document.getElementById('guess-input').disabled = true;
+        }
+
+        // 事件綁定
+        document.getElementById('submit-btn').addEventListener('click', handleGuess);
+        document.getElementById('guess-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleGuess();
+        });
+
+        // 啟動遊戲
+        window.onload = loadCSV;
+    </script>
+</body>
+</html>
