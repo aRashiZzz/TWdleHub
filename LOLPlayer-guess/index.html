@@ -8,11 +8,46 @@
     <style>
         input[type="text"] { font-size: 16px !important; }
 		/* ======================================================= */
+        /* 🔍 下拉自動完成選單：確保文字絕對不變成點點點             */
+        /* ======================================================= */
+        .autocomplete-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #111827; /* 調整為深灰色，更融入 bg-gray-950 */
+            border: 1px solid #374151;
+            border-radius: 12px;
+            max-height: 240px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            backdrop-blur: sm;
+        }
+
+        /* 這裡特別強制：選單內允許正常換行，絕對不准變成點點點 */
+        .suggestion-item {
+            padding: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-b: 1px solid rgba(55, 65, 81, 0.3);
+            white-space: normal !important;     /* 允許正常換行 */
+            text-overflow: clip !important;     /* 關閉點點點 */
+            overflow: visible !important;       /* 允許文字顯示 */
+        }
+
+        .suggestion-item:hover {
+            background-color: #1f2937;
+        }
+
+        /* ======================================================= */
         /* 🎨 歷史猜測表格比例調整：精準重新分配寬度                  */
         /* ======================================================= */
         .grid-header, .guess-row {
             display: grid;
-            /* 調整比例：選手(1.5)、位置(0.8)、出生地(0.9)、出生年(0.9)、現任(1.4)、曾效力(1.7) */
             grid-template-columns: 1.5fr 0.8fr 0.9fr 0.9fr 1.4fr 1.7fr;
             gap: 6px;
             width: 100%;
@@ -32,7 +67,7 @@
             animation: flipIn 0.5s ease;
         }
 
-        /* 讓文字在格子內絕對維持單行、過長自動變點點點 */
+        /* 歷史格子：維持防炸裂的點點點功能 */
         .grid-cell-lol {
             display: flex;
             align-items: center;
@@ -43,9 +78,9 @@
             line-height: 1.2;
             text-align: center;
             padding: 0 4px;
-            overflow: hidden;       /* 隱藏超出部分 */
-            white-space: nowrap;    /* 強制單行不換行 */
-            text-overflow: ellipsis;/* 超出部分變 ... */
+            overflow: hidden;       
+            white-space: nowrap;    
+            text-overflow: ellipsis;
         }
 
         @keyframes flipIn {
@@ -55,14 +90,8 @@
 
         /* 📱 手機端與窄螢幕專屬防擠壓優化 */
         @media (max-width: 500px) {
-            .grid-header {
-                font-size: 0.72rem;
-                gap: 4px;
-            }
-            .guess-row {
-                gap: 4px;
-            }
-            /* 手機端整體字體微調，確保極限寬度下也能塞下文字 */
+            .grid-header { font-size: 0.72rem; gap: 4px; }
+            .guess-row { gap: 4px; }
             .grid-header > div, .guess-row > div {
                 font-size: 0.68rem !important; 
             }
@@ -240,7 +269,7 @@
                 startNewGame();
             }
 
-            function setupSearchListener() {
+           function setupSearchListener() {
                 searchInput.addEventListener('input', function() {
                     if (isGameOver) return;
                     const query = this.value.trim().toLowerCase();
@@ -256,8 +285,14 @@
                     if (filtered.length > 0) {
                         filtered.forEach(player => {
                             const item = document.createElement('div');
-                            item.className = "p-3 cursor-pointer hover:bg-gray-800 border-b border-gray-800/50 flex justify-between text-sm transition-colors";
-                            item.innerHTML = `<span>${player.name}</span> <span class="text-xs text-gray-500">${player.current_team}</span>`;
+                            // 使用上面我們新寫的 suggestion-item 類別，斷絕跟 grid-cell 的關聯
+                            item.className = "suggestion-item text-white transition-colors";
+                            
+                            // 左右排版：左邊放選手名字，右邊放現任隊伍
+                            item.innerHTML = `
+                                <span class="font-bold text-gray-100">${player.name}</span> 
+                                <span class="text-xs text-pink-400 bg-pink-950/40 px-2 py-0.5 rounded-md border border-pink-900/30">${player.current_team}</span>
+                            `;
                             
                             item.addEventListener('click', () => {
                                 handleGuess(player);
