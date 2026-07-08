@@ -239,6 +239,167 @@
             .grid-cell:nth-child(1) { font-size: 0.7rem; } 
             .grid-cell:nth-child(4) { font-size: 0.68rem; } 
         }
+		/* ======================================================= */
+        /* 💡 遊戲說明與圖例提示專屬樣式                            */
+        /* ======================================================= */
+        .rules-details {
+            background-color: #1a1e29; /* 深色沉浸式背景 */
+            border: 1px solid #2a3042;
+            border-radius: 12px;
+            overflow: hidden;
+            color: #e2e8f0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .rules-summary {
+            padding: 12px 15px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            background-color: #222836;
+            color: #fff;
+            user-select: none;
+            outline: none;
+        }
+        .rules-summary:hover {
+            background-color: #2b3244;
+        }
+
+        .rules-content {
+            padding: 15px;
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        .rule-line {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .rule-text {
+            color: #cbd5e1;
+            flex: 1;
+        }
+
+        /* 標籤樣式 */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: white;
+            text-align: center;
+            min-width: 50px;
+            margin-right: 5px;
+            white-space: nowrap;
+        }
+        .badge-correct { background-color: var(--color-correct); }
+        .badge-present { background-color: var(--color-present); color: #333; }
+        .badge-absent { background-color: var(--color-absent); }
+        .badge-arrow { background-color: #475569; }
+
+        .rules-hr {
+            border: 0;
+            border-top: 1px solid #2a3042;
+            margin: 15px 0 10px 0;
+        }
+
+        .rules-footer {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* 手機端微調 */
+        @media (max-width: 500px) {
+            .rules-summary { font-size: 0.85rem; padding: 10px; }
+            .rules-content { padding: 10px; font-size: 0.78rem; }
+            .badge { padding: 2px 8px; min-width: 42px; font-size: 0.75rem; }
+        }
+		/* ======================================================= */
+        /* 💡 遊戲說明與圖例提示專屬樣式（台偶風格、靜態平鋪版）      */
+        /* ======================================================= */
+        .static-rules-container {
+            width: 100%;
+            max-width: var(--max-width);
+            background-color: var(--color-card); /* 維持跟主容器一樣的白色 */
+            border: 1px solid #eef0f5;
+            border-radius: 12px;
+            margin-top: 20px; /* 與上方遊戲主區塊拉開距離 */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .rules-title {
+            padding: 12px 15px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            background-color: #fff0f5; /* 微微的粉色，呼應台偶感 */
+            color: #e91e63; /* 經典台偶粉紅字 */
+            border-bottom: 1px solid #ffe4ed;
+        }
+
+        .rules-content {
+            padding: 15px;
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        .rule-line {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .rule-text {
+            color: #666; /* 溫和的灰色，不刺眼 */
+            flex: 1;
+        }
+
+        /* 標籤樣式 */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: white;
+            text-align: center;
+            min-width: 50px;
+            margin-right: 8px;
+            white-space: nowrap;
+        }
+        .badge-correct { background-color: var(--color-correct); }
+        .badge-present { background-color: var(--color-present); color: #fff; }
+        .badge-absent { background-color: var(--color-absent); }
+        .badge-arrow { background-color: #78909c; } /* 柔和的藍灰色箭頭標籤 */
+
+        .rule-line strong {
+            color: #ffb300; /* 讓箭頭提示文字在白底上也看得清 */
+        }
+
+        .rules-hr {
+            border: 0;
+            border-top: 1px solid #eee;
+            margin: 15px 0 10px 0;
+        }
+
+        .rules-footer {
+            font-size: 0.8rem;
+            color: #999;
+        }
+
+        /* 手機端排版微調 */
+        @media (max-width: 500px) {
+            .rules-title { font-size: 0.85rem; padding: 10px 12px; }
+            .rules-content { padding: 12px 10px; font-size: 0.78rem; }
+            .badge { padding: 2px 8px; min-width: 42px; font-size: 0.75rem; margin-right: 5px; }
+        }
     </style>
 </head>
 <body>
@@ -279,6 +440,31 @@
 
         <div id="game-message" class="message"></div>
         <button id="next-btn" class="next-btn">挑戰下一題 ➔</button>
+    </div>
+	<div class="static-rules-container">
+        <div class="rules-title">💡 遊戲說明與圖例提示</div>
+        <div class="rules-content">
+            <div class="rule-line">
+                <span class="badge badge-correct">綠色</span>
+                <span class="rule-text">：完全正確（該屬性與今日神秘偶像劇完全吻合）。</span>
+            </div>
+            <div class="rule-line">
+                <span class="badge badge-present">黃色</span>
+                <span class="rule-text">：部分正確 / 接近。在【年份】代表相差 3 年內，在【集數】代表相差 5 集內。如果頻道部分重疊也會亮黃燈。</span>
+            </div>
+            <div class="rule-line">
+                <span class="badge badge-absent">紅色</span>
+                <span class="rule-text">：完全錯誤（該屬性與今日神秘偶像劇不符）。</span>
+            </div>
+            <div class="rule-line" style="margin-top: 8px;">
+                <span class="badge badge-arrow">↑ / ↓</span>
+                <span class="rule-text">：在【年份】、【首播】、【集數】與【字數】中，會以 <strong>↑</strong>（代表答案更大/更晚）或 <strong>↓</strong>（代表答案更小/更早）提示相對關係。</span>
+            </div>
+            <hr class="rules-hr">
+            <div class="rules-footer">
+                📢 備註：劇集資料皆由維基百科搜尋整理。數據若有時間差或更新錯誤，還請見諒。
+            </div>
+        </div>
     </div>
 
     <script>
@@ -380,7 +566,7 @@
             }
 
             answerActors = [...todayAnswer.actors].sort(() => Math.random() - 0.5);
-            console.log(`[${gameMode}模式] 今日答案（調試用）：`, todayAnswer.title);
+            //console.log(`[${gameMode}模式] 今日答案（調試用）：`, todayAnswer.title);
         }
 
         // 3. 設定模式切換按鈕事件
