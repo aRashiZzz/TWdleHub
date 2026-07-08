@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚾ CPBLdle - 中職猜球員</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        input[type="text"] { font-size: 16px !important; }
+    </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen flex flex-col items-center p-4 md:p-8">
+
+    <!-- 返回大廳 -->
+    <div class="w-full max-w-md md:max-w-2xl text-left mb-2">
+        <a href="../" class="text-sm text-green-400 hover:underline transition flex items-center gap-1 w-fit">
+            <span>←</span> 返回遊戲大廳
+        </a>
+    </div>
+
+    <!-- Header 標題區 -->
+    <header class="text-center mb-6 md:mb-10">
+        <h1 class="text-3xl md:text-5xl font-black tracking-wider text-green-400 drop-shadow-[0_0_15px_rgba(74,222,128,0.2)]">
+            ⚾ CPBLdle
+        </h1>
+        <p class="text-gray-400 text-xs md:text-sm mt-2">猜出今天的神祕中職球員（每日更新）</p>
+    </header>
+
+    <!-- 遊戲主要區域 -->
+    <main class="w-full max-w-md md:max-w-2xl flex flex-col items-center gap-4 md:gap-6">
+        
+        <!-- 搜尋輸入框與下拉選單 -->
+        <div class="w-full relative max-w-md">
+            <input type="text" id="search-input" placeholder="載入資料中，請稍候..." disabled
+                   class="w-full p-3 md:p-4 rounded-xl bg-gray-950 border-2 border-gray-800 text-white focus:outline-none focus:border-green-500 text-base md:text-lg transition-all opacity-50 shadow-inner">
+            
+            <div id="autocomplete-list" class="absolute w-full bg-gray-900 border border-gray-700 rounded-xl mt-2 max-h-60 overflow-y-auto hidden z-50 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-sm"></div>
+        </div>
+
+        <!-- 猜測歷史紀錄 -->
+        <div class="w-full flex flex-col gap-2 mt-2 bg-gray-900/40 p-3 md:p-5 rounded-2xl border border-gray-800/80 backdrop-blur-sm shadow-xl">
+            <div class="grid grid-cols-6 gap-1.5 md:gap-3 text-center text-xs md:text-sm font-black text-gray-400 border-b border-gray-800 pb-3 mb-1 tracking-wider">
+                <div>球員</div><div>球隊</div><div>位置</div><div>慣用</div><div>背號</div><div>年齡</div>
+            </div>
+            
+            <div id="grid-container" class="flex flex-col gap-2 md:gap-3"></div>
+        </div>
+
+        <!-- 💡 新增：玩法說明與提示區塊 -->
+        <div class="w-full bg-gray-900/60 border border-gray-800/80 rounded-2xl p-4 md:p-5 text-xs md:text-sm text-gray-400 flex flex-col gap-3 shadow-md">
+            <h3 class="font-bold text-gray-200 border-b border-gray-800 pb-2">💡 遊戲說明與圖例提示</h3>
+            
+            <!-- 圖例列表 -->
+            <div class="flex flex-col gap-2">
+                <div class="flex items-start gap-2">
+                    <span class="inline-block bg-green-600 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 rounded text-center min-w-[50px]">綠色</span>
+                    <span>：完全正確（該屬性與今日神祕球員完全吻合）。</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="inline-block bg-yellow-500 text-black font-bold text-[10px] md:text-xs px-2 py-0.5 rounded text-center min-w-[50px]">黃色</span>
+                    <span>：部分正確／接近。在【位置】代表內野手守備位置互通；在【背號】與【年齡】代表數字不正確，但會以 <b class="text-gray-300">↑ (代表答案更大)</b> 或 <b class="text-gray-300">↓ (代表答案更小)</b> 提示相對關係。</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="inline-block bg-gray-800 text-gray-400 font-bold text-[10px] md:text-xs px-2 py-0.5 rounded text-center min-w-[50px] border border-gray-700/30">灰色</span>
+                    <span>：完全錯誤（該屬性與今日神祕球員不符）。</span>
+                </div>
+            </div>
+
+            <!-- 免責聲明文字 -->
+            <p class="text-[11px] md:text-xs text-gray-500 border-t border-gray-800/60 pt-2.5 mt-1">
+                📢 備註：球員資料皆由 CPBL 官網搜尋整理。數據若有時間差或更新錯誤，還請見諒。
+            </p>
+        </div>
+
+        <!-- 遊戲結束彈窗 -->
+        <div id="result-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 hidden z-50 backdrop-blur-md">
+            <div class="bg-gray-900 border-2 border-gray-800 rounded-2xl p-6 md:p-8 w-full max-w-sm text-center shadow-[0_20px_50px_rgba(0,0,0,0.7)] animate-in fade-in zoom-in duration-200">
+                <h2 id="modal-title" class="text-3xl font-black text-green-400">🎉 任務成功！</h2>
+                <p id="modal-desc" class="text-gray-300 mt-2 text-sm md:text-base"></p>
+                <div id="emoji-preview" class="my-4 font-mono text-sm md:text-base leading-tight bg-gray-950 p-4 rounded-xl border border-gray-800 select-all max-h-40 overflow-y-auto"></div>
+                <button id="share-btn" class="w-full bg-green-500 hover:bg-green-600 text-black font-black py-3 rounded-xl transition-all shadow-lg active:scale-[0.98]">
+                    📋 複製戰績（分享到 Threads/脆）
+                </button>
+                <button onclick="closeModal()" class="mt-4 text-xs text-gray-500 hover:text-gray-300 hover:underline block mx-auto transition">關閉視窗</button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // JS 邏輯完全保留你原本的運作方式
+        let PLAYERS = [];
+        let TODAY_ANSWER = null;
+        let guessHistory = [];
+        let isGameOver = false;
+
+        const POSITION_MAP = {
+            "投手": "P", "捕手": "C", "一壘手": "1B", "二壘手": "2B",
+            "三壘手": "3B", "游擊手": "SS", "外野手": "OF", "指定打擊": "DH"
+        };
+
+        const searchInput = document.getElementById('search-input');
+        const autocompleteList = document.getElementById('autocomplete-list');
+        const gridContainer = document.getElementById('grid-container');
+        const resultModal = document.getElementById('result-modal');
+        const emojiPreview = document.getElementById('emoji-preview');
+        const shareBtn = document.getElementById('share-btn');
+
+        async function initGame() {
+            try {
+                const response = await fetch('./players.json');
+                PLAYERS = await response.json();
+                
+                const todayStr = new Date().toISOString().slice(0, 10);
+                let seed = 0;
+                for (let i = 0; i < todayStr.length; i++) { seed += todayStr.charCodeAt(i); }
+                TODAY_ANSWER = PLAYERS[seed % PLAYERS.length];
+                
+                console.log("今日答案（測試用）：", TODAY_ANSWER.name);
+
+                searchInput.disabled = false;
+                searchInput.placeholder = "輸入中職球員姓名（例：江坤宇）...";
+                searchInput.classList.remove('opacity-50');
+                
+                setupSearchListener();
+            } catch (error) {
+                console.error("載入球員資料庫失敗:", error);
+                searchInput.placeholder = "❌ 資料庫載入失敗，請重新整理網頁。";
+            }
+        }
+
+        function setupSearchListener() {
+            searchInput.addEventListener('input', function() {
+                if (isGameOver) return;
+                const query = this.value.trim();
+                autocompleteList.innerHTML = '';
+                
+                if (!query) {
+                    autocompleteList.classList.add('hidden');
+                    return;
+                }
+
+                const filtered = PLAYERS.filter(p => p.name.includes(query));
+                
+                if (filtered.length > 0) {
+                    filtered.forEach(player => {
+                        const item = document.createElement('div');
+                        item.className = "p-3 cursor-pointer hover:bg-gray-800 border-b border-gray-800/50 flex justify-between text-sm transition-colors";
+                        item.innerHTML = `<span>${player.name}</span> <span class="text-xs text-gray-500">${player.team}</span>`;
+                        
+                        item.addEventListener('click', () => {
+                            handleGuess(player);
+                            searchInput.value = '';
+                            autocompleteList.classList.add('hidden');
+                        });
+                        autocompleteList.appendChild(item);
+                    });
+                    autocompleteList.classList.remove('hidden');
+                } else {
+                    autocompleteList.classList.add('hidden');
+                }
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (e.target !== searchInput) autocompleteList.classList.add('hidden');
+        });
+
+        function checkPosition(guessPos, answerPos) {
+            if (guessPos === answerPos) return { color: "bg-green-600", emoji: "🟩" };
+            const infield = ["1B", "2B", "3B", "SS"];
+            if (infield.includes(guessPos) && infield.includes(answerPos)) {
+                return { color: "bg-yellow-500", emoji: "🟨" };
+            }
+            return { color: "bg-gray-800 border border-gray-700/50", emoji: "⬛" };
+        }
+
+        function handleGuess(player) {
+            if (guessHistory.some(g => g.id === player.id)) return;
+
+            const row = document.createElement('div');
+            row.className = "grid grid-cols-6 gap-1.5 md:gap-3 w-full text-center text-sm md:text-base font-bold h-12 md:h-14 transition-all duration-300";
+
+            const teamMatch = player.team === TODAY_ANSWER.team;
+            const teamData = { color: teamMatch ? "bg-green-600" : "bg-gray-800 border border-gray-700/50", emoji: teamMatch ? "🟩" : "⬛" };
+            const posData = checkPosition(player.position, TODAY_ANSWER.position);
+            const handMatch = player.main_hand === TODAY_ANSWER.main_hand;
+            const handData = { color: handMatch ? "bg-green-600" : "bg-gray-800 border border-gray-700/50", emoji: handMatch ? "🟩" : "⬛" };
+            const numMatch = player.number === TODAY_ANSWER.number;
+            const numArrow = player.number < TODAY_ANSWER.number ? "↑" : (player.number > TODAY_ANSWER.number ? "↓" : "");
+            const numData = { color: numMatch ? "bg-green-600" : "bg-yellow-500", emoji: numMatch ? "🟩" : "🟨" };
+            const ageMatch = player.age === TODAY_ANSWER.age;
+            const ageArrow = player.age < TODAY_ANSWER.age ? "↑" : (player.age > TODAY_ANSWER.age ? "↓" : "");
+            const ageData = { color: ageMatch ? "bg-green-600" : "bg-yellow-500", emoji: ageMatch ? "🟩" : "🟨" };
+
+            const currentEmojis = `${teamData.emoji}${posData.emoji}${handData.emoji}${numData.emoji}${ageData.emoji}`;
+            guessHistory.push({ id: player.id, emojis: currentEmojis });
+
+            row.innerHTML = `
+                <div class="flex items-center justify-center bg-gray-800/80 rounded-xl text-xs md:text-sm px-0.5 font-bold border border-gray-700/30">${player.name}</div>
+                <div class="flex items-center justify-center ${teamData.color} rounded-xl text-xs md:text-sm px-0.5 shadow-md">${player.team.replace("7-ELEVEn", "")}</div>
+                <div class="flex items-center justify-center ${posData.color} rounded-xl text-xs md:text-sm shadow-md">${player.position}</div>
+                <div class="flex items-center justify-center ${handData.color} rounded-xl shadow-md">${player.main_hand}</div>
+                <div class="flex items-center justify-center ${numData.color} rounded-xl shadow-md">${player.number}${numArrow}</div>
+                <div class="flex items-center justify-center ${ageData.color} rounded-xl shadow-md">${player.age}${ageArrow}</div>
+            `;
+
+            gridContainer.prepend(row); 
+
+            if (player.id === TODAY_ANSWER.id) {
+                isGameOver = true;
+                showResult(true);
+            } else if (guessHistory.length >= 6) {
+                isGameOver = true;
+                showResult(false);
+            }
+        }
+
+        function showResult(isWin) {
+            searchInput.disabled = true;
+            document.getElementById('modal-title').innerText = isWin ? "🎉 任務成功！" : "💥 挑戰失敗！";
+            document.getElementById('modal-title').className = isWin ? "text-3xl font-black text-green-400" : "text-3xl font-black text-red-500";
+            document.getElementById('modal-desc').innerText = isWin 
+                ? `你花了 ${guessHistory.length} 次猜出：${TODAY_ANSWER.name}！` 
+                : `可惜了！今天的正確答案是：${TODAY_ANSWER.name}`;
+
+            const todayStrTW = new Date().toLocaleDateString('zh-TW');
+            let emojiText = `📊 CPBLdle 中職猜球員 #${todayStrTW}\n`;
+            emojiText += `次數: ${guessHistory.length}/6\n\n`;
+            
+            guessHistory.slice().reverse().forEach(g => { 
+                emojiText += `${g.emojis}\n`; 
+            });
+            
+            emojiText += `\n點此挑戰 👉 ${window.location.href}`;
+
+            emojiPreview.innerText = emojiText.replace(/\n/g, '\r\n');
+
+            shareBtn.onclick = function() {
+                navigator.clipboard.writeText(emojiText).then(() => {
+                    shareBtn.innerText = "✅ 複製成功！快去發脆吧！";
+                    setTimeout(() => { shareBtn.innerText = "📋 複製戰績（分享到 Threads/脆）"; }, 2000);
+                }).catch(err => {
+                    alert("瀏覽器不支援自動複製，請手動全選方塊區文字進行複製。");
+                });
+            };
+
+            setTimeout(() => { resultModal.classList.remove('hidden'); }, 800);
+        }
+
+        function closeModal() { resultModal.classList.add('hidden'); }
+
+        initGame();
+    </script>
+</body>
+</html>
