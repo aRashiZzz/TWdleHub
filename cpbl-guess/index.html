@@ -209,8 +209,14 @@
             const todayStrTW = new Date().toLocaleDateString('zh-TW');
             let emojiText = `📊 CPBLdle 中職猜球員 #${todayStrTW}\n`;
             emojiText += `次數: ${guessHistory.length}/6\n\n`;
-            guessHistory.forEach(g => { emojiText += `${g.emojis}\n`; });
-            emojiText += `\n點此挑戰 👉 ${window.location.href}`; // 自動抓取當前網址
+            
+            // ======= 💡 關鍵修改處：將 slice().reverse() 加在這裡 =======
+            // 這樣可以把分享圖的方塊順序，變得跟網頁畫面上「最新的在最上面」完全一致！
+            guessHistory.slice().reverse().forEach(g => { 
+                emojiText += `${g.emojis}\n`; 
+            });
+            
+            emojiText += `\n點此挑戰 👉 ${window.location.href}`;
 
             emojiPreview.innerText = emojiText.replace(/\n/g, '\r\n');
 
