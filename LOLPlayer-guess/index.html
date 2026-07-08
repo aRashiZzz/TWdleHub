@@ -28,31 +28,22 @@
         }
 
         /* ======================================================= */
-        /* 🎨 歷史猜測表格容器優化：智慧型響應式佈局                */
+        /* 🎨 歷史猜測表格比例優化：放寬電腦版橫向空間              */
         /* ======================================================= */
-        /* 1. 外層包裹區：當內容超出螢幕寬度時，才允許橫向滾動 */
-        .grid-scroll-wrapper {
-            width: 100%;
-            overflow-x: auto;          
-            -webkit-overflow-scrolling: touch; 
-            padding-bottom: 5px;       
-        }
-
-        /* 2. 表頭與內容列：在電腦版撐滿 100% 寬度，在手機版啟動最低保護寬度 */
         .grid-header, .guess-row {
             display: grid;
-            /* 調整比例：選手(1.3)、位置(0.7)、出生地(0.9)、出生年(0.8)、招牌英雄(1.6)、現任(1.3)、曾效力(1.6) */
-            grid-template-columns: 1.3fr 0.7fr 0.9fr 0.8fr 1.6fr 1.3fr 1.6fr;
-            gap: 6px;
+            /* 微調比例：給招牌英雄(2.2fr)與曾效力隊(2.2fr)極大的空間，其餘精簡 */
+            grid-template-columns: 1.2fr 1fr 1fr 1fr 2.2fr 1.3fr 2.2fr;
+            gap: 8px;
             width: 100%;
-            min-width: 100%; /* ✨ 電腦版預設 100% 自適應展開，擺得下就不會出現滾動條！ */
+            min-width: 100%; 
         }
 
         .grid-header {
             font-weight: bold;
             text-align: center;
             margin-bottom: 8px;
-            font-size: 0.9rem;
+            font-size: 0.95rem; /* 稍微放大字體更具電競感 */
             color: #94a3b8;
             padding: 0 2px;
         }
@@ -62,7 +53,7 @@
             animation: flipIn 0.5s ease;
         }
 
-        /* 3. 歷史格子：允許英文字詞自然換行（Word-break），避免因單行過長強行撐開表格 */
+        /* 歷史格子：維持自然伸縮，但透過優化 padding 減輕視覺壓縮感 */
         .grid-cell-lol {
             display: flex;
             align-items: center;
@@ -70,15 +61,28 @@
             border-radius: 12px;
             font-weight: bold;
             box-sizing: border-box;
-            line-height: 1.2;
+            line-height: 1.4;
             text-align: center;
-            padding: 4px 6px;
-            word-break: break-word; /* ✨ 遇到較長隊伍名稱時，在大螢幕允許精緻地上下雙行排版，完美防止滾動條提早出現 */
+            padding: 6px 8px; /* 增加上下左右內襯，讓長文字換行時也極具呼吸感 */
+            word-break: break-word; 
         }
 
         @keyframes flipIn {
             0% { transform: rotateX(-90deg); opacity: 0; }
             100% { transform: rotateX(0deg); opacity: 1; }
+        }
+
+        /* 📱 手機端與窄螢幕專屬防變形臨界值設定 */
+        @media (max-width: 768px) {
+            /* 在螢幕不夠大時（小於768px），為了不讓文字擠壓，強制解鎖固定寬度以利左右滑動 */
+            .grid-header, .guess-row {
+                min-width: 760px; /* 提高手機端保護寬度，確保 7 欄都能舒展開來 */
+                gap: 4px;
+            }
+            .grid-header > div, .grid-cell-lol {
+                font-size: 0.75rem !important; 
+                padding: 4px 4px;
+            }
         }
 
         /* ======================================================= */
@@ -99,7 +103,7 @@
 </head>
 <body class="bg-gray-950 text-white min-h-screen flex flex-col items-center p-4 md:p-8">
 
-    <div class="w-full max-w-md md:max-w-3xl flex justify-between items-center mb-4">
+    <div class="w-full max-w-md md:max-w-5xl flex justify-between items-center mb-4">
         <a href="../" class="text-sm text-pink-400 hover:underline transition flex items-center gap-1 w-fit">
             <span>←</span> 返回遊戲大廳
         </a>
@@ -121,7 +125,7 @@
         <p id="game-subtitle" class="text-gray-400 text-xs md:text-sm mt-2">猜出今天的神祕 LMS / PCS 職業選手（每日更新）</p>
     </header>
 
-    <main class="w-full max-w-md md:max-w-3xl flex flex-col items-center gap-4 md:gap-6">
+    <main class="w-full max-w-md md:max-w-5xl flex flex-col items-center gap-4 md:gap-6">
         
         <div id="search-container" class="w-full relative max-w-md">
             <input type="text" id="search-input" placeholder="載入職業選手資料中..." disabled
@@ -252,7 +256,7 @@
                     gameSubtitle.innerText = "無限遊玩模式：神秘電競選手已隨機重置！";
                     searchInput.placeholder = "輸入選手 ID，盡情猜測吧！";
                 }
-                console.log("今日答案（防作弊隱蔽）：", TODAY_ANSWER.name);
+                //console.log("今日答案（防作弊隱蔽）：", TODAY_ANSWER.name);
             }
 
             function switchMode(mode) {
