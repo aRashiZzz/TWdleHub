@@ -7,7 +7,27 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         input[type="text"] { font-size: 16px !important; }
-		/* ======================================================= */
+
+        /* ======================================================= */
+        /* 🔍 下拉自動完成選單：確保選單文字完全顯現，不變點點點   */
+        /* ======================================================= */
+        .suggestion-item {
+            padding: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(55, 65, 81, 0.3);
+            white-space: normal !important;     /* 允許選單內正常換行 */
+            text-overflow: clip !important;     /* 關閉選單點點點 */
+            overflow: visible !important;       /* 允許選單文字完整顯示 */
+        }
+        .suggestion-item:hover {
+            background-color: #1f2937;
+        }
+
+        /* ======================================================= */
         /* 🎨 歷史猜測表格容器優化：支援手機版左右滑動              */
         /* ======================================================= */
         /* 1. 外層包裹區：當內容超出螢幕寬度時，允許橫向滾動 */
@@ -15,16 +35,17 @@
             width: 100%;
             overflow-x: auto;          /* 關鍵：開啟橫向左右滾動 */
             -webkit-overflow-scrolling: touch; /* 讓手機端滑動更順暢 */
-            padding-bottom: 5px;       /* 留一點空間給滾動條，視覺更舒服 */
+            padding-bottom: 5px;       /* 留一點空間給滾動條 */
         }
 
-        /* 2. 表頭與內容列：給予一個固定的最小寬度（電腦版100%，手機版強制撐開不壓縮） */
+        /* 2. 表頭與內容列：給予一個固定的最小寬度，防止在手機端被擠壓 */
         .grid-header, .guess-row {
             display: grid;
+            /* 重新分配比例：選手(1.4)、位置(0.8)、出生地(0.9)、出生年(0.9)、現任(1.4)、曾效力(1.8) */
             grid-template-columns: 1.4fr 0.8fr 0.9fr 0.9fr 1.4fr 1.8fr;
             gap: 6px;
             width: 100%;
-            min-width: 550px; /* ✨ 關鍵：強制給表格一個最低總寬度，確保在手機上文字有空間完整顯示 */
+            min-width: 580px; /* ✨ 強制表格在小螢幕也有充足空間自然展開，不縮成點點點 */
         }
 
         .grid-header {
@@ -41,7 +62,7 @@
             animation: flipIn 0.5s ease;
         }
 
-        /* 3. 歷史格子：徹底拔除點點點，改用自然伸縮 */
+        /* 3. 歷史格子：徹底拔除點點點，改用自然伸縮顯示完整字 */
         .grid-cell-lol {
             display: flex;
             align-items: center;
@@ -52,8 +73,7 @@
             line-height: 1.2;
             text-align: center;
             padding: 0 6px;
-            /* 🚫 拔除舊版的 white-space: nowrap、overflow、text-overflow */
-            /* 讓文字自然緊湊，如果單字略長會微縮或微換行，但因為有 550px 護盾，基本都能完美單行顯示 */
+            /* 🚫 徹底移除原本的 truncate 點點點設定，讓戰隊字體完整浮現 */
         }
 
         @keyframes flipIn {
@@ -65,8 +85,8 @@
         @media (max-width: 500px) {
             .grid-header { gap: 4px; }
             .guess-row { gap: 4px; }
-            /* 手機版稍微縮小滾動區內的文字大小，讓滑動體驗更精緻 */
-            .grid-header > div, .guess-row > div {
+            /* 手機版稍微縮小滾動區內的文字大小，讓滑動與閱讀體驗更精緻 */
+            .grid-header > div, .grid-cell-lol {
                 font-size: 0.75rem !important; 
             }
         }
@@ -105,8 +125,10 @@
             <div id="autocomplete-list" class="absolute w-full bg-gray-900 border border-gray-700 rounded-xl mt-2 max-h-60 overflow-y-auto hidden z-50 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-sm"></div>
         </div>
 
+        <!-- 歷史猜測表格容器 -->
         <div class="w-full mt-2 bg-gray-900/40 p-3 md:p-5 rounded-2xl border border-gray-800/80 backdrop-blur-sm shadow-xl overflow-hidden">
             
+            <!-- 橫向滑動包裹層 -->
             <div class="grid-scroll-wrapper">
                 
                 <div class="grid-header tracking-wider">
@@ -115,7 +137,8 @@
                 
                 <div id="grid-container" class="flex flex-col gap-2 md:gap-3"></div>
             
-            </div> </div>
+            </div> 
+        </div>
 
         <div class="w-full bg-gray-900/60 border border-gray-800/80 rounded-2xl p-4 md:p-5 text-xs md:text-sm text-gray-400 flex flex-col gap-3 shadow-md">
             <h3 class="font-bold text-gray-200 border-b border-gray-800 pb-2">💡 遊戲說明與圖例提示</h3>
@@ -144,7 +167,8 @@
             <div class="bg-gray-900 border-2 border-gray-800 rounded-2xl p-6 md:p-8 w-full max-w-sm text-center shadow-[0_20px_50px_rgba(0,0,0,0.7)] animate-in fade-in zoom-in duration-200">
                 <h2 id="modal-title" class="text-3xl font-black text-pink-400">🎉 任務成功！</h2>
                 <p id="modal-desc" class="text-gray-300 mt-2 text-sm md:text-base"></p>
-                <p id="modal-hero-hint" class="text-yellow-400 text-xs mt-1 font-bold"></p> <div id="emoji-preview" class="my-4 font-mono text-sm md:text-base leading-tight bg-gray-950 p-4 rounded-xl border border-gray-800 select-all max-h-40 overflow-y-auto"></div>
+                <p id="modal-hero-hint" class="text-yellow-400 text-xs mt-1 font-bold"></p> 
+                <div id="emoji-preview" class="my-4 font-mono text-sm md:text-base leading-tight bg-gray-950 p-4 rounded-xl border border-gray-800 select-all max-h-40 overflow-y-auto"></div>
                 
                 <div class="flex flex-col gap-2">
                     <button id="share-btn" class="w-full bg-pink-500 hover:bg-pink-600 text-black font-black py-3 rounded-xl transition-all shadow-lg active:scale-[0.98]">
@@ -263,10 +287,8 @@
                     if (filtered.length > 0) {
                         filtered.forEach(player => {
                             const item = document.createElement('div');
-                            // 使用上面我們新寫的 suggestion-item 類別，斷絕跟 grid-cell 的關聯
                             item.className = "suggestion-item text-white transition-colors";
                             
-                            // 左右排版：左邊放選手名字，右邊放現任隊伍
                             item.innerHTML = `
                                 <span class="font-bold text-gray-100">${player.name}</span> 
                                 <span class="text-xs text-pink-400 bg-pink-950/40 px-2 py-0.5 rounded-md border border-pink-900/30">${player.current_team}</span>
@@ -299,7 +321,8 @@
                 if (guessHistory.some(g => g.id === player.id)) return;
 
                 const row = document.createElement('div');
-                row.className = "grid grid-cols-6 gap-1.5 md:gap-3 w-full text-center text-xs md:text-base font-bold h-12 md:h-14 transition-all duration-300 overflow-hidden";
+                // ✨ 修正：將 row 類別名直接綁定為我們寫好的 CSS 樣式類別（.guess-row），確保寬度與比例同步生效
+                row.className = "guess-row h-12 md:h-14 transition-all duration-300";
 
                 // 1. 位置比對
                 const posMatch = player.position === TODAY_ANSWER.position;
@@ -337,14 +360,14 @@
                 const currentEmojis = `${posData.emoji}${countryData.emoji}${yearData.emoji}${teamData.emoji}${pastData.emoji}`;
                 guessHistory.push({ id: player.id, emojis: currentEmojis });
 
-                // ✨ 這裡加入了 grid-cell-lol 來防止換行爆開，並加上 title 屬性，讓玩家把游標移上去時能看見完整長文字
+                // ✨ 修正：將內部元素的 class 統一換上帶有橫向滾動彈性的 .grid-cell-lol，完美呈現完整字串
                 row.innerHTML = `
-                    <div class="grid-cell-lol bg-gray-800/80 border border-gray-700/30 text-white" title="${player.name}"><span class="truncate">${player.name}</span></div>
-                    <div class="grid-cell-lol ${posData.color} shadow-md text-white" title="${player.position}"><span class="truncate">${player.position}</span></div>
-                    <div class="grid-cell-lol ${countryData.color} shadow-md text-white" title="${player.country}"><span class="truncate">${player.country}</span></div>
+                    <div class="grid-cell-lol bg-gray-800/80 border border-gray-700/30 text-white" title="${player.name}">${player.name}</div>
+                    <div class="grid-cell-lol ${posData.color} shadow-md text-white" title="${player.position}">${player.position}</div>
+                    <div class="grid-cell-lol ${countryData.color} shadow-md text-white" title="${player.country}">${player.country}</div>
                     <div class="grid-cell-lol ${yearData.color} shadow-md text-white">${player.birth_year || '未知'}${yearArrow}</div>
-                    <div class="grid-cell-lol ${teamData.color} shadow-md text-white" title="${player.current_team}"><span class="truncate">${player.current_team}</span></div>
-                    <div class="grid-cell-lol ${pastData.color} shadow-md text-white" title="${player.past_teams}"><span class="truncate">${player.past_teams}</span></div>
+                    <div class="grid-cell-lol ${teamData.color} shadow-md text-white" title="${player.current_team}">${player.current_team}</div>
+                    <div class="grid-cell-lol ${pastData.color} shadow-md text-white" title="${player.past_teams}">${player.past_teams}</div>
                 `;
 
                 gridContainer.prepend(row);
@@ -366,7 +389,6 @@
                     ? `你花了 ${guessHistory.length} 次猜出選手：${TODAY_ANSWER.name}！` 
                     : `可惜了！正確答案是：${TODAY_ANSWER.name}`;
                 
-                // 顯示該選手的招牌英雄作為額外彩蛋提示
                 document.getElementById('modal-hero-hint').innerText = `🏆 該選手招牌英雄：${TODAY_ANSWER.招牌英雄}`;
 
                 const todayStrTW = new Date().toLocaleDateString('zh-TW');
