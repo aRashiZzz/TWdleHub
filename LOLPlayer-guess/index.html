@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 LOLdle - LMS/PCS 選手猜謎</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        input[type="text"] { font-size: 16px !important; }
+    </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen flex flex-col items-center p-4 md:p-8">
+
+    <div class="w-full max-w-md md:max-w-2xl flex justify-between items-center mb-4">
+        <a href="../" class="text-sm text-pink-400 hover:underline transition flex items-center gap-1 w-fit">
+            <span>←</span> 返回遊戲大廳
+        </a>
+        
+        <div class="bg-gray-900 border border-gray-800 p-1 rounded-xl flex gap-1 text-xs md:text-sm font-bold">
+            <button id="mode-daily" onclick="gameModule.switchMode('daily')" class="px-3 py-1.5 rounded-lg bg-pink-500 text-black transition-all">
+                📅 每日挑戰
+            </button>
+            <button id="mode-endless" onclick="gameModule.switchMode('endless')" class="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white transition-all">
+                ♾️ 無限遊玩
+            </button>
+        </div>
+    </div>
+
+    <header class="text-center mb-6 md:mb-10">
+        <h1 class="text-3xl md:text-5xl font-black tracking-wider text-pink-400 drop-shadow-[0_0_15px_rgba(244,114,182,0.2)]">
+            🎮 Playerdle
+        </h1>
+        <p id="game-subtitle" class="text-gray-400 text-xs md:text-sm mt-2">猜出今天的神祕 LMS / PCS 職業選手（每日更新）</p>
+    </header>
+
+    <main class="w-full max-w-md md:max-w-2xl flex flex-col items-center gap-4 md:gap-6">
+        
+        <div id="search-container" class="w-full relative max-w-md">
+            <input type="text" id="search-input" placeholder="載入職業選手資料中..." disabled
+                   class="w-full p-3 md:p-4 rounded-xl bg-gray-950 border-2 border-gray-800 text-white focus:outline-none focus:border-pink-500 text-base md:text-lg transition-all opacity-50 shadow-inner">
+            
+            <div id="autocomplete-list" class="absolute w-full bg-gray-900 border border-gray-700 rounded-xl mt-2 max-h-60 overflow-y-auto hidden z-50 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-sm"></div>
+        </div>
+
+        <div class="w-full flex flex-col gap-2 mt-2 bg-gray-900/40 p-3 md:p-5 rounded-2xl border border-gray-800/80 backdrop-blur-sm shadow-xl">
+            <div class="grid grid-cols-6 gap-1.5 md:gap-3 text-center text-xs md:text-sm font-black text-gray-400 border-b border-gray-800 pb-3 mb-1 tracking-wider">
+                <div>選手</div><div>位置</div><div>出生地</div><div>出生年</div><div>現任隊伍</div><div>曾效力隊</div>
+            </div>
+            
+            <div id="grid-container" class="flex flex-col gap-2 md:gap-3"></div>
+        </div>
+
+        <div class="w-full bg-gray-900/60 border border-gray-800/80 rounded-2xl p-4 md:p-5 text-xs md:text-sm text-gray-400 flex flex-col gap-3 shadow-md">
+            <h3 class="font-bold text-gray-200 border-b border-gray-800 pb-2">💡 遊戲說明與圖例提示</h3>
+            
+            <div class="flex flex-col gap-2">
+                <div class="flex items-start gap-2">
+                    <span class="inline-block bg-green-600 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 rounded text-center min-w-[50px]">綠色</span>
+                    <span>：完全正確（該屬性與今日神祕選手完全吻合）。</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="inline-block bg-yellow-500 text-black font-bold text-[10px] md:text-xs px-2 py-0.5 rounded text-center min-w-[50px]">黃色</span>
+                    <span>：部分正確／接近。在【出生年】代表數字不正確，但會以 <b class="text-gray-300">↑ (代表答案更大/更晚)</b> 或 <b class="text-gray-300">↓ (代表答案更小/更早)</b> 提示相對關係。在【曾效力隊伍】代表有部分重疊。</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="inline-block bg-gray-800 text-gray-400 font-bold text-[10px] md:text-xs px-2 py-0.5 rounded text-center min-w-[50px] border border-gray-700/30">灰色</span>
+                    <span>：完全錯誤（該屬性與今日神祕選手不符）。</span>
+                </div>
+            </div>
+
+            <p class="text-[11px] md:text-xs text-gray-500 border-t border-gray-800/60 pt-2.5 mt-1">
+                📢 備註：選手資料皆由 LOL Fandom (Leaguepedia) 搜尋整理。
+            </p>
+        </div>
+
+        <div id="result-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 hidden z-50 backdrop-blur-md">
+            <div class="bg-gray-900 border-2 border-gray-800 rounded-2xl p-6 md:p-8 w-full max-w-sm text-center shadow-[0_20px_50px_rgba(0,0,0,0.7)] animate-in fade-in zoom-in duration-200">
+                <h2 id="modal-title" class="text-3xl font-black text-pink-400">🎉 任務成功！</h2>
+                <p id="modal-desc" class="text-gray-300 mt-2 text-sm md:text-base"></p>
+                <p id="modal-hero-hint" class="text-yellow-400 text-xs mt-1 font-bold"></p> <div id="emoji-preview" class="my-4 font-mono text-sm md:text-base leading-tight bg-gray-950 p-4 rounded-xl border border-gray-800 select-all max-h-40 overflow-y-auto"></div>
+                
+                <div class="flex flex-col gap-2">
+                    <button id="share-btn" class="w-full bg-pink-500 hover:bg-pink-600 text-black font-black py-3 rounded-xl transition-all shadow-lg active:scale-[0.98]">
+                        📋 複製戰績（分享到 Threads/脆）
+                    </button>
+                    <button id="next-game-btn" onclick="gameModule.startNewGame()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3 rounded-xl transition-all shadow-lg active:scale-[0.98] hidden">
+                        🔄 再玩一場
+                    </button>
+                </div>
+                
+                <button onclick="gameModule.closeModal()" class="mt-4 text-xs text-gray-500 hover:text-gray-300 hover:underline block mx-auto transition">關閉視窗</button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const gameModule = (function() {
+            let PLAYERS = [];
+            let TODAY_ANSWER = null;
+            let guessHistory = [];
+            let isGameOver = false;
+            let currentGameMode = 'daily';
+
+            const searchInput = document.getElementById('search-input');
+            const autocompleteList = document.getElementById('autocomplete-list');
+            const gridContainer = document.getElementById('grid-container');
+            const resultModal = document.getElementById('result-modal');
+            const emojiPreview = document.getElementById('emoji-preview');
+            const shareBtn = document.getElementById('share-btn');
+            const nextGameBtn = document.getElementById('next-game-btn');
+            const gameSubtitle = document.getElementById('game-subtitle');
+
+            function getHashCode(str) {
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    hash = (hash << 5) - hash + str.charCodeAt(i);
+                    hash |= 0; 
+                }
+                return Math.abs(hash);
+            }
+
+            async function initGame() {
+                try {
+                    const response = await fetch('./players.json');
+                    PLAYERS = await response.json();
+                    
+                    startNewGame();
+                    
+                    searchInput.disabled = false;
+                    searchInput.classList.remove('opacity-50');
+                    
+                    setupSearchListener();
+                    setupClickOutsideListener();
+                } catch (error) {
+                    console.error("載入選手資料庫失敗:", error);
+                    searchInput.placeholder = "❌ players.json 載入失敗，請先執行 Python 腳本轉檔。";
+                }
+            }
+
+            function startNewGame() {
+                closeModal();
+                guessHistory = [];
+                isGameOver = false;
+                gridContainer.innerHTML = '';
+                searchInput.value = '';
+                searchInput.disabled = false;
+
+                if (currentGameMode === 'daily') {
+                    const todayStr = new Date().toISOString().slice(0, 10);
+                    const seed = getHashCode(todayStr);
+                    TODAY_ANSWER = PLAYERS[seed % PLAYERS.length];
+                    gameSubtitle.innerText = "猜出今天的神祕 LMS / PCS 職業選手（每日更新）";
+                    searchInput.placeholder = "輸入選手 ID（例：Maple）...";
+                } else {
+                    const randomIndex = Math.floor(Math.random() * PLAYERS.length);
+                    TODAY_ANSWER = PLAYERS[randomIndex];
+                    gameSubtitle.innerText = "無限遊玩模式：神秘電競選手已隨機重置！";
+                    searchInput.placeholder = "輸入選手 ID，盡情猜測吧！";
+                }
+                console.log("今日答案（防作弊隱蔽）：", TODAY_ANSWER.name);
+            }
+
+            function switchMode(mode) {
+                if (currentGameMode === mode) return;
+                currentGameMode = mode;
+
+                const dailyBtn = document.getElementById('mode-daily');
+                const endlessBtn = document.getElementById('mode-endless');
+
+                if (mode === 'daily') {
+                    dailyBtn.className = "px-3 py-1.5 rounded-lg bg-pink-500 text-black transition-all";
+                    endlessBtn.className = "px-3 py-1.5 rounded-lg text-gray-400 hover:text-white transition-all";
+                    nextGameBtn.classList.add('hidden');
+                } else {
+                    endlessBtn.className = "px-3 py-1.5 rounded-lg bg-pink-500 text-black transition-all";
+                    dailyBtn.className = "px-3 py-1.5 rounded-lg text-gray-400 hover:text-white transition-all";
+                    nextGameBtn.classList.remove('hidden');
+                }
+                startNewGame();
+            }
+
+            function setupSearchListener() {
+                searchInput.addEventListener('input', function() {
+                    if (isGameOver) return;
+                    const query = this.value.trim().toLowerCase();
+                    autocompleteList.innerHTML = '';
+                    
+                    if (!query) {
+                        autocompleteList.classList.add('hidden');
+                        return;
+                    }
+
+                    const filtered = PLAYERS.filter(p => p.name.toLowerCase().includes(query));
+                    
+                    if (filtered.length > 0) {
+                        filtered.forEach(player => {
+                            const item = document.createElement('div');
+                            item.className = "p-3 cursor-pointer hover:bg-gray-800 border-b border-gray-800/50 flex justify-between text-sm transition-colors";
+                            item.innerHTML = `<span>${player.name}</span> <span class="text-xs text-gray-500">${player.current_team}</span>`;
+                            
+                            item.addEventListener('click', () => {
+                                handleGuess(player);
+                                searchInput.value = '';
+                                autocompleteList.classList.add('hidden');
+                            });
+                            autocompleteList.appendChild(item);
+                        });
+                        autocompleteList.classList.remove('hidden');
+                    } else {
+                        autocompleteList.classList.add('hidden');
+                    }
+                });
+            }
+
+            function setupClickOutsideListener() {
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('#search-container')) {
+                        autocompleteList.classList.add('hidden');
+                    }
+                });
+            }
+
+            // 處理猜測與比對邏輯（黃綠紅燈）
+            function handleGuess(player) {
+                if (guessHistory.some(g => g.id === player.id)) return;
+
+                const row = document.createElement('div');
+                row.className = "grid grid-cols-6 gap-1.5 md:gap-3 w-full text-center text-xs md:text-base font-bold h-12 md:h-14 transition-all duration-300 overflow-hidden";
+
+                // 1. 位置比對
+                const posMatch = player.position === TODAY_ANSWER.position;
+                const posData = { color: posMatch ? "bg-green-600" : "bg-gray-800 border border-gray-700/50", emoji: posMatch ? "🟩" : "⬛" };
+
+                // 2. 出生地比對
+                const countryMatch = player.country === TODAY_ANSWER.country;
+                const countryData = { color: countryMatch ? "bg-green-600" : "bg-gray-800 border border-gray-700/50", emoji: countryMatch ? "🟩" : "⬛" };
+
+                // 3. 出生年比對（含箭頭）
+                const yearMatch = player.birth_year === TODAY_ANSWER.birth_year;
+                const yearArrow = player.birth_year < TODAY_ANSWER.birth_year ? "↑" : (player.birth_year > TODAY_ANSWER.birth_year ? "↓" : "");
+                const yearData = { color: yearMatch ? "bg-green-600" : "bg-yellow-500", emoji: yearMatch ? "🟩" : "🟨" };
+
+                // 4. 現任隊伍比對
+                const teamMatch = player.current_team === TODAY_ANSWER.current_team;
+                const teamData = { color: teamMatch ? "bg-green-600" : "bg-gray-800 border border-gray-700/50", emoji: teamMatch ? "🟩" : "⬛" };
+
+                // 5. 曾效力隊伍比對（黃燈邏輯：是否有重疊隊伍）
+                let pastMatchStatus = "absent";
+                if (player.past_teams === TODAY_ANSWER.past_teams && player.past_teams !== "無前效力隊伍") {
+                    pastMatchStatus = "correct";
+                } else {
+                    const guessPastArr = player.past_teams.split('、');
+                    const answerPastArr = TODAY_ANSWER.past_teams.split('、');
+                    const hasOverlap = guessPastArr.some(t => answerPastArr.includes(t) && t !== "無前效力隊伍");
+                    if (hasOverlap) pastMatchStatus = "present";
+                }
+                
+                const pastData = {
+                    color: pastMatchStatus === "correct" ? "bg-green-600" : (pastMatchStatus === "present" ? "bg-yellow-500" : "bg-gray-800 border border-gray-700/50"),
+                    emoji: pastMatchStatus === "correct" ? "🟩" : (pastMatchStatus === "present" ? "🟨" : "⬛")
+                };
+
+                const currentEmojis = `${posData.emoji}${countryData.emoji}${yearData.emoji}${teamData.emoji}${pastData.emoji}`;
+                guessHistory.push({ id: player.id, emojis: currentEmojis });
+
+                row.innerHTML = `
+                    <div class="flex items-center justify-center bg-gray-800/80 rounded-xl text-[10px] md:text-sm px-0.5 font-bold border border-gray-700/30 truncate">${player.name}</div>
+                    <div class="flex items-center justify-center ${posData.color} rounded-xl text-xs md:text-sm shadow-md truncate">${player.position}</div>
+                    <div class="flex items-center justify-center ${countryData.color} rounded-xl text-xs md:text-sm shadow-md truncate">${player.country}</div>
+                    <div class="flex items-center justify-center ${yearData.color} rounded-xl text-xs md:text-sm shadow-md">${player.birth_year || '未知'}${yearArrow}</div>
+                    <div class="flex items-center justify-center ${teamData.color} rounded-xl text-[10px] md:text-xs px-0.5 shadow-md truncate">${player.current_team}</div>
+                    <div class="flex items-center justify-center ${pastData.color} rounded-xl text-[10px] md:text-xs px-0.5 shadow-md truncate">${player.past_teams}</div>
+                `;
+
+                gridContainer.prepend(row);
+
+                if (player.id === TODAY_ANSWER.id) {
+                    isGameOver = true;
+                    showResult(true);
+                } else if (guessHistory.length >= 6) {
+                    isGameOver = true;
+                    showResult(false);
+                }
+            }
+
+            function showResult(isWin) {
+                searchInput.disabled = true;
+                document.getElementById('modal-title').innerText = isWin ? "🎉 任務成功！" : "💥 挑戰失敗！";
+                document.getElementById('modal-title').className = isWin ? "text-3xl font-black text-pink-400" : "text-3xl font-black text-red-500";
+                document.getElementById('modal-desc').innerText = isWin 
+                    ? `你花了 ${guessHistory.length} 次猜出選手：${TODAY_ANSWER.name}！` 
+                    : `可惜了！正確答案是：${TODAY_ANSWER.name}`;
+                
+                // 顯示該選手的招牌英雄作為額外彩蛋提示
+                document.getElementById('modal-hero-hint').innerText = `🏆 該選手招牌英雄：${TODAY_ANSWER.招牌英雄}`;
+
+                const todayStrTW = new Date().toLocaleDateString('zh-TW');
+                const modeTag = currentGameMode === 'daily' ? '每日挑戰' : '無限遊玩';
+                
+                let emojiText = `📊 LOLdle 選手猜謎 (${modeTag}) #${todayStrTW}\n`;
+                emojiText += `次數: ${guessHistory.length}/6\n\n`;
+                
+                guessHistory.forEach(g => { emojiText += `${g.emojis}\n`; });
+                
+                emojiText += `\n點此挑戰 👉 ${window.location.href}`;
+                emojiPreview.innerText = emojiText.replace(/\n/g, '\r\n');
+
+                shareBtn.onclick = function() {
+                    navigator.clipboard.writeText(emojiText).then(() => {
+                        shareBtn.innerText = "✅ 複製成功！快去發脆吧！";
+                        setTimeout(() => { shareBtn.innerText = "📋 複製戰績（分享到 Threads/脆）"; }, 2000);
+                    }).catch(err => {
+                        alert("瀏覽器不支援自動複製，請手動複製方塊區文字。");
+                    });
+                };
+
+                setTimeout(() => { resultModal.classList.remove('hidden'); }, 800);
+            }
+
+            function closeModal() { resultModal.classList.add('hidden'); }
+
+            initGame();
+
+            return {
+                switchMode: switchMode,
+                startNewGame: startNewGame,
+                closeModal: closeModal
+            };
+        })();
+    </script>
+</body>
+</html>
