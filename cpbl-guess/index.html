@@ -19,7 +19,7 @@
     <!-- Header 標題區 -->
     <header class="text-center mb-4">
         <h1 class="text-3xl font-black tracking-wider text-green-400">⚾ CPBLdle</h1>
-        <p class="text-gray-400 text-xs mt-1">憑藉提示，猜出今天的神祕中職球員（每日更新）</p>
+        <p class="text-gray-400 text-xs mt-1">猜出今天的神祕中職球員（每日更新）</p>
     </header>
 
     <!-- 遊戲主要區域 -->
@@ -34,10 +34,12 @@
         </div>
 
         <!-- 猜測歷史紀錄 -->
-        <div id="grid-container" class="w-full flex flex-col gap-2 mt-2">
+<div class="w-full flex flex-col gap-2 mt-2">
             <div class="grid grid-cols-6 gap-1 text-center text-xs font-bold text-gray-500">
                 <div>球員</div><div>球隊</div><div>位置</div><div>慣用</div><div>背號</div><div>年齡</div>
             </div>
+            
+            <div id="grid-container" class="flex flex-col gap-2"></div>
         </div>
 
         <!-- 遊戲結束彈窗 -->
@@ -158,18 +160,15 @@
             const row = document.createElement('div');
             row.className = "grid grid-cols-6 gap-1 w-full text-center text-sm font-bold h-12";
 
+            // (中間變色判定邏輯保持不變...)
             const teamMatch = player.team === TODAY_ANSWER.team;
             const teamData = { color: teamMatch ? "bg-green-600" : "bg-gray-700", emoji: teamMatch ? "🟩" : "⬛" };
-
             const posData = checkPosition(player.position, TODAY_ANSWER.position);
-
             const handMatch = player.main_hand === TODAY_ANSWER.main_hand;
             const handData = { color: handMatch ? "bg-green-600" : "bg-gray-700", emoji: handMatch ? "🟩" : "⬛" };
-            
             const numMatch = player.number === TODAY_ANSWER.number;
             const numArrow = player.number < TODAY_ANSWER.number ? "↑" : (player.number > TODAY_ANSWER.number ? "↓" : "");
             const numData = { color: numMatch ? "bg-green-600" : "bg-yellow-500", emoji: numMatch ? "🟩" : "🟨" };
-            
             const ageMatch = player.age === TODAY_ANSWER.age;
             const ageArrow = player.age < TODAY_ANSWER.age ? "↑" : (player.age > TODAY_ANSWER.age ? "↓" : "");
             const ageData = { color: ageMatch ? "bg-green-600" : "bg-yellow-500", emoji: ageMatch ? "🟩" : "🟨" };
@@ -185,7 +184,9 @@
                 <div class="flex items-center justify-center ${numData.color} rounded">${player.number}${numArrow}</div>
                 <div class="flex items-center justify-center ${ageData.color} rounded">${player.age}${ageArrow}</div>
             `;
-            gridContainer.appendChild(row);
+
+            // ======= 💡 關鍵修改處 1：改用 prepend 插到最前面 =======
+            gridContainer.prepend(row); 
 
             if (player.id === TODAY_ANSWER.id) {
                 isGameOver = true;
