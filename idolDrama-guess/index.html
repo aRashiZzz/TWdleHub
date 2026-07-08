@@ -224,24 +224,22 @@
         // 1. 初始化：讀取本地 CSV 檔案
         async function loadCSV() {
             try {
-                // 這裡讀取你爬好的檔案
                 const response = await fetch('taiwan_idols_database_v3.csv');
                 const data = await response.text();
                 
-                // 解析 CSV (簡單解析，考慮到逗號分隔)
                 const lines = data.split('\n').map(line => line.trim()).filter(line => line.length > 0);
                 
-                // 略過第 0 行標頭 (年份,首播日期,頻道,集數,劇名,主演)
                 for(let i = 1; i < lines.length; i++) {
                     const row = parseCSVLine(lines[i]);
                     if(row.length >= 6) {
                         dramaDatabase.push({
-                            year: row[0].replace('年',''),        // 2001
-                            date: row[1].trim(),                   // 4月12日
-                            channel: row[2].trim(),                // 華視
-                            episodes: parseInt(row[3]) || 0,       // 24
-                            title: row[4].trim(),                  // 流星花園
-                            actors: row[5].split(/[、，, ]+/).map(a => a.trim()).filter(a => a) // 演員陣容陣列
+                            year: parseInt(row[0].replace('年','')) || 0, // 轉成純數字方便比較
+                            dateStr: row[1].trim(),                        // 原始日期字串，如 "4月12日"
+                            dateVal: parseDateToNumber(row[1].trim()),     // 轉成數字（如 412）方便比大小
+                            channel: row[2].trim(),
+                            episodes: parseInt(row[3]) || 0,
+                            title: row[4].trim(),
+                            actors: row[5].split(/[、，, ]+/).map(a => a.trim()).filter(a => a)
                         });
                     }
                 }
@@ -258,7 +256,6 @@
             }
         }
 
-        // 處理解析 CSV 中可能包含引號或特殊空白的行
         function parseCSVLine(text) {
             let p = '', r = [];
             let q = false;
@@ -272,21 +269,30 @@
             return r;
         }
 
-        // 2. 依日期鎖定全網不變的每日題目
+        // 輔助函式：把 "4月12日" 轉成數字 412，方便箭頭比大小
+        function parseDateToNumber(dateStr) {
+            const match = dateStr.match(/(\d+)月(\d+)日/);
+            if (match) {
+                const month = parseInt(match[1]);
+                const day = parseInt(match[2]);
+                return month * 100 + day; // 4月12日 -> 412, 12月19日 -> 1219
+            }
+            return 0;
+        }
+
+        // 2. 依日期鎖定每日題目
         function pickTodayAnswer() {
             const today = new Date();
             const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
             
-            // 使用日期偽隨機數選取一題
             const index = dateSeed % dramaDatabase.length;
             todayAnswer = dramaDatabase[index];
             
-            // 洗牌演員順序，讓每次提示隨機
             answerActors = [...todayAnswer.actors].sort(() => Math.random() - 0.5);
             console.log("今日答案（調試用）：", todayAnswer.title);
         }
 
-        // 3. 自動完成選單 (Autocomplete)
+        // 3. 自動完成選單 (優化：只保留純劇名)
         function initAutocomplete() {
             const input = document.getElementById('guess-input');
             const suggBox = document.getElementById('suggestions');
@@ -302,7 +308,7 @@
                     matches.forEach(m => {
                         const div = document.createElement('div');
                         div.className = 'suggestion-item';
-                        div.innerText = m.title;
+                        div.innerText = m.title; // 確保只顯示乾淨的劇名
                         div.addEventListener('click', () => {
                             input.value = m.title;
                             suggBox.style.display = 'none';
@@ -336,44 +342,61 @@
             input.value = '';
             document.getElementById('results-table').style.display = 'block';
 
-            // 執行比對並繪製格子
             renderRow(userGuess);
-            // 更新演員提示
             updateActorHint();
 
-            // 檢查勝負
             if (userGuess.title === todayAnswer.title) {
                 endGame(true, `🎉 太強了！答案就是《${todayAnswer.title}》！你一共猜了 ${guessedCount} 次。`);
             }
         }
 
-        // 5. 繪製比對格子 (比對演算法)
+        // 5. 繪製比對格子 (優化：全面加入上下箭頭提示)
         function renderRow(guess) {
             const container = document.getElementById('guess-rows-container');
             const row = document.createElement('div');
             row.className = 'guess-row';
 
+            // 年份箭頭邏輯
+            let yearArrow = '';
+            if (guess.year < todayAnswer.year) yearArrow = ' ↑';
+            if (guess.year > todayAnswer.year) yearArrow = ' ↓';
+
+            // 首播日期箭頭邏輯
+            let dateArrow = '';
+            if (guess.dateVal < todayAnswer.dateVal) dateArrow = ' ↑';
+            if (guess.dateVal > todayAnswer.dateVal) dateArrow = ' ↓';
+
+            // 集數箭頭邏輯
+            let epArrow = '';
+            if (guess.episodes < todayAnswer.episodes) epArrow = ' ↑';
+            if (guess.episodes > todayAnswer.episodes) epArrow = ' ↓';
+
+            // 字數箭頭邏輯
+            let lenArrow = '';
+            if (guess.title.length < todayAnswer.title.length) lenArrow = ' ↑';
+            if (guess.title.length > todayAnswer.title.length) lenArrow = ' ↓';
+
             // 欄位定義與比對邏輯
             const fields = [
                 { val: guess.title, status: guess.title === todayAnswer.title ? 'correct' : 'absent' },
                 { 
-                    val: guess.year + "年", 
+                    val: guess.year + "年" + yearArrow, 
                     status: guess.year === todayAnswer.year ? 'correct' : (Math.abs(guess.year - todayAnswer.year) <= 3 ? 'present' : 'absent') 
-                    // 年份相同綠燈，差3年內黃燈，其餘紅燈
                 },
-                { val: guess.date, status: guess.date === todayAnswer.date ? 'correct' : 'absent' },
+                { 
+                    val: guess.dateStr + dateArrow, 
+                    status: guess.dateVal === todayAnswer.dateVal ? 'correct' : 'absent' 
+                },
                 { 
                     val: guess.channel, 
                     status: guess.channel === todayAnswer.channel ? 'correct' : (todayAnswer.channel.includes(guess.channel) || guess.channel.includes(todayAnswer.channel) ? 'present' : 'absent')
-                    // 頻道部分重疊給黃燈（例如 華視 包含 華視東森）
                 },
                 { 
-                    val: guess.episodes + "集", 
+                    val: guess.episodes + "集" + epArrow, 
                     status: guess.episodes === todayAnswer.episodes ? 'correct' : (Math.abs(guess.episodes - todayAnswer.episodes) <= 5 ? 'present' : 'absent')
-                    // 集數差5集內黃燈
                 },
                 { 
-                    val: guess.title.length + "字", 
+                    val: guess.title.length + "字" + lenArrow, 
                     status: guess.title.length === todayAnswer.title.length ? 'correct' : 'absent' 
                 }
             ];
@@ -391,7 +414,6 @@
         // 6. 動態演員提示機制
         function updateActorHint() {
             document.getElementById('hint-count').innerText = guessedCount;
-            // 每次猜測就多拿一個演員，最多不超過該劇總演員數
             const visibleCount = Math.min(guessedCount, answerActors.length);
             const revealed = answerActors.slice(0, visibleCount);
 
@@ -414,13 +436,11 @@
             document.getElementById('guess-input').disabled = true;
         }
 
-        // 事件綁定
         document.getElementById('submit-btn').addEventListener('click', handleGuess);
         document.getElementById('guess-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleGuess();
         });
 
-        // 啟動遊戲
         window.onload = loadCSV;
     </script>
 </body>
