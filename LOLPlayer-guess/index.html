@@ -7,6 +7,66 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         input[type="text"] { font-size: 16px !important; }
+		/* ======================================================= */
+        /* 🎨 歷史猜測表格比例調整：精準重新分配寬度                  */
+        /* ======================================================= */
+        .grid-header, .guess-row {
+            display: grid;
+            /* 調整比例：選手(1.5)、位置(0.8)、出生地(0.9)、出生年(0.9)、現任(1.4)、曾效力(1.7) */
+            grid-template-columns: 1.5fr 0.8fr 0.9fr 0.9fr 1.4fr 1.7fr;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .grid-header {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #94a3b8;
+            padding: 0 2px;
+        }
+
+        .guess-row {
+            margin-bottom: 6px;
+            animation: flipIn 0.5s ease;
+        }
+
+        /* 讓文字在格子內絕對維持單行、過長自動變點點點 */
+        .grid-cell-lol {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-weight: bold;
+            box-sizing: border-box;
+            line-height: 1.2;
+            text-align: center;
+            padding: 0 4px;
+            overflow: hidden;       /* 隱藏超出部分 */
+            white-space: nowrap;    /* 強制單行不換行 */
+            text-overflow: ellipsis;/* 超出部分變 ... */
+        }
+
+        @keyframes flipIn {
+            0% { transform: rotateX(-90deg); opacity: 0; }
+            100% { transform: rotateX(0deg); opacity: 1; }
+        }
+
+        /* 📱 手機端與窄螢幕專屬防擠壓優化 */
+        @media (max-width: 500px) {
+            .grid-header {
+                font-size: 0.72rem;
+                gap: 4px;
+            }
+            .guess-row {
+                gap: 4px;
+            }
+            /* 手機端整體字體微調，確保極限寬度下也能塞下文字 */
+            .grid-header > div, .guess-row > div {
+                font-size: 0.68rem !important; 
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-950 text-white min-h-screen flex flex-col items-center p-4 md:p-8">
@@ -245,7 +305,7 @@
                 const teamMatch = player.current_team === TODAY_ANSWER.current_team;
                 const teamData = { color: teamMatch ? "bg-green-600" : "bg-gray-800 border border-gray-700/50", emoji: teamMatch ? "🟩" : "⬛" };
 
-                // 5. 曾效力隊伍比對（黃燈邏輯：是否有重疊隊伍）
+                // 5. 曾效力隊伍比對
                 let pastMatchStatus = "absent";
                 if (player.past_teams === TODAY_ANSWER.past_teams && player.past_teams !== "無前效力隊伍") {
                     pastMatchStatus = "correct";
@@ -264,13 +324,14 @@
                 const currentEmojis = `${posData.emoji}${countryData.emoji}${yearData.emoji}${teamData.emoji}${pastData.emoji}`;
                 guessHistory.push({ id: player.id, emojis: currentEmojis });
 
+                // ✨ 這裡加入了 grid-cell-lol 來防止換行爆開，並加上 title 屬性，讓玩家把游標移上去時能看見完整長文字
                 row.innerHTML = `
-                    <div class="flex items-center justify-center bg-gray-800/80 rounded-xl text-[10px] md:text-sm px-0.5 font-bold border border-gray-700/30 truncate">${player.name}</div>
-                    <div class="flex items-center justify-center ${posData.color} rounded-xl text-xs md:text-sm shadow-md truncate">${player.position}</div>
-                    <div class="flex items-center justify-center ${countryData.color} rounded-xl text-xs md:text-sm shadow-md truncate">${player.country}</div>
-                    <div class="flex items-center justify-center ${yearData.color} rounded-xl text-xs md:text-sm shadow-md">${player.birth_year || '未知'}${yearArrow}</div>
-                    <div class="flex items-center justify-center ${teamData.color} rounded-xl text-[10px] md:text-xs px-0.5 shadow-md truncate">${player.current_team}</div>
-                    <div class="flex items-center justify-center ${pastData.color} rounded-xl text-[10px] md:text-xs px-0.5 shadow-md truncate">${player.past_teams}</div>
+                    <div class="grid-cell-lol bg-gray-800/80 border border-gray-700/30 text-white" title="${player.name}"><span class="truncate">${player.name}</span></div>
+                    <div class="grid-cell-lol ${posData.color} shadow-md text-white" title="${player.position}"><span class="truncate">${player.position}</span></div>
+                    <div class="grid-cell-lol ${countryData.color} shadow-md text-white" title="${player.country}"><span class="truncate">${player.country}</span></div>
+                    <div class="grid-cell-lol ${yearData.color} shadow-md text-white">${player.birth_year || '未知'}${yearArrow}</div>
+                    <div class="grid-cell-lol ${teamData.color} shadow-md text-white" title="${player.current_team}"><span class="truncate">${player.current_team}</span></div>
+                    <div class="grid-cell-lol ${pastData.color} shadow-md text-white" title="${player.past_teams}"><span class="truncate">${player.past_teams}</span></div>
                 `;
 
                 gridContainer.prepend(row);
