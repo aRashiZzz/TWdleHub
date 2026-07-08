@@ -11,11 +11,21 @@
 </head>
 <body class="bg-gray-950 text-white min-h-screen flex flex-col items-center p-4 md:p-8">
 
-    <!-- 返回大廳 -->
-    <div class="w-full max-w-md md:max-w-2xl text-left mb-2">
+    <!-- 返回大廳與模式切換 -->
+    <div class="w-full max-w-md md:max-w-2xl flex justify-between items-center mb-4">
         <a href="../" class="text-sm text-green-400 hover:underline transition flex items-center gap-1 w-fit">
             <span>←</span> 返回遊戲大廳
         </a>
+        
+        <!-- 💡 模式切換按鈕 -->
+        <div class="bg-gray-900 border border-gray-800 p-1 rounded-xl flex gap-1 text-xs md:text-sm font-bold">
+            <button id="mode-daily" onclick="switchMode('daily')" class="px-3 py-1.5 rounded-lg bg-green-500 text-black transition-all">
+                📅 每日挑戰
+            </button>
+            <button id="mode-endless" onclick="switchMode('endless')" class="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white transition-all">
+                ♾️ 無限遊玩
+            </button>
+        </div>
     </div>
 
     <!-- Header 標題區 -->
@@ -23,7 +33,7 @@
         <h1 class="text-3xl md:text-5xl font-black tracking-wider text-green-400 drop-shadow-[0_0_15px_rgba(74,222,128,0.2)]">
             ⚾ CPBLdle
         </h1>
-        <p class="text-gray-400 text-xs md:text-sm mt-2">猜出今天的神祕中職球員（每日更新）</p>
+        <p id="game-subtitle" class="text-gray-400 text-xs md:text-sm mt-2">猜出今天的神祕中職球員（每日更新）</p>
     </header>
 
     <!-- 遊戲主要區域 -->
@@ -46,11 +56,10 @@
             <div id="grid-container" class="flex flex-col gap-2 md:gap-3"></div>
         </div>
 
-        <!-- 💡 新增：玩法說明與提示區塊 -->
+        <!-- 玩法說明與提示區塊 -->
         <div class="w-full bg-gray-900/60 border border-gray-800/80 rounded-2xl p-4 md:p-5 text-xs md:text-sm text-gray-400 flex flex-col gap-3 shadow-md">
             <h3 class="font-bold text-gray-200 border-b border-gray-800 pb-2">💡 遊戲說明與圖例提示</h3>
             
-            <!-- 圖例列表 -->
             <div class="flex flex-col gap-2">
                 <div class="flex items-start gap-2">
                     <span class="inline-block bg-green-600 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 rounded text-center min-w-[50px]">綠色</span>
@@ -66,7 +75,6 @@
                 </div>
             </div>
 
-            <!-- 免責聲明文字 -->
             <p class="text-[11px] md:text-xs text-gray-500 border-t border-gray-800/60 pt-2.5 mt-1">
                 📢 備註：球員資料皆由 CPBL 官網搜尋整理。數據若有時間差或更新錯誤，還請見諒。
             </p>
@@ -78,9 +86,17 @@
                 <h2 id="modal-title" class="text-3xl font-black text-green-400">🎉 任務成功！</h2>
                 <p id="modal-desc" class="text-gray-300 mt-2 text-sm md:text-base"></p>
                 <div id="emoji-preview" class="my-4 font-mono text-sm md:text-base leading-tight bg-gray-950 p-4 rounded-xl border border-gray-800 select-all max-h-40 overflow-y-auto"></div>
-                <button id="share-btn" class="w-full bg-green-500 hover:bg-green-600 text-black font-black py-3 rounded-xl transition-all shadow-lg active:scale-[0.98]">
-                    📋 複製戰績（分享到 Threads/脆）
-                </button>
+                
+                <div class="flex flex-col gap-2">
+                    <button id="share-btn" class="w-full bg-green-500 hover:bg-green-600 text-black font-black py-3 rounded-xl transition-all shadow-lg active:scale-[0.98]">
+                        📋 複製戰績（分享到 Threads/脆）
+                    </button>
+                    <!-- 💡 新增：無限模式專用的再玩一場按鈕 -->
+                    <button id="next-game-btn" onclick="startNewGame()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3 rounded-xl transition-all shadow-lg active:scale-[0.98] hidden">
+                        🔄 再玩一場
+                    </button>
+                </div>
+                
                 <button onclick="closeModal()" class="mt-4 text-xs text-gray-500 hover:text-gray-300 hover:underline block mx-auto transition">關閉視窗</button>
             </div>
         </div>
@@ -88,11 +104,11 @@
     </main>
 
     <script>
-        // JS 邏輯完全保留你原本的運作方式
         let PLAYERS = [];
         let TODAY_ANSWER = null;
         let guessHistory = [];
         let isGameOver = false;
+        let currentGameMode = 'daily'; // 💡 新增：記錄目前模式 ('daily' 或 'endless')
 
         const POSITION_MAP = {
             "投手": "P", "捕手": "C", "一壘手": "1B", "二壘手": "2B",
@@ -105,21 +121,18 @@
         const resultModal = document.getElementById('result-modal');
         const emojiPreview = document.getElementById('emoji-preview');
         const shareBtn = document.getElementById('share-btn');
+        const nextGameBtn = document.getElementById('next-game-btn');
+        const gameSubtitle = document.getElementById('game-subtitle');
 
+        // 🚀 初始化
         async function initGame() {
             try {
                 const response = await fetch('./players.json');
                 PLAYERS = await response.json();
                 
-                const todayStr = new Date().toISOString().slice(0, 10);
-                let seed = 0;
-                for (let i = 0; i < todayStr.length; i++) { seed += todayStr.charCodeAt(i); }
-                TODAY_ANSWER = PLAYERS[seed % PLAYERS.length];
+                startNewGame(); // 💡 調用統一的初始/重置函式
                 
-                console.log("今日答案（測試用）：", TODAY_ANSWER.name);
-
                 searchInput.disabled = false;
-                searchInput.placeholder = "輸入中職球員姓名（例：江坤宇）...";
                 searchInput.classList.remove('opacity-50');
                 
                 setupSearchListener();
@@ -127,6 +140,55 @@
                 console.error("載入球員資料庫失敗:", error);
                 searchInput.placeholder = "❌ 資料庫載入失敗，請重新整理網頁。";
             }
+        }
+
+        // 💡 新增：重置並開啟新局的函式
+        function startNewGame() {
+            closeModal();
+            guessHistory = [];
+            isGameOver = false;
+            gridContainer.innerHTML = '';
+            searchInput.value = '';
+            searchInput.disabled = false;
+
+            if (currentGameMode === 'daily') {
+                // 每日挑戰：依據日期產生固定的隨機種子
+                const todayStr = new Date().toISOString().slice(0, 10);
+                let seed = 0;
+                for (let i = 0; i < todayStr.length; i++) { seed += todayStr.charCodeAt(i); }
+                TODAY_ANSWER = PLAYERS[seed % PLAYERS.length];
+                gameSubtitle.innerText = "猜出今天的神祕中職球員（每日更新）";
+                searchInput.placeholder = "輸入中職球員姓名（例：江坤宇）...";
+            } else {
+                // 無限遊玩：完全隨機抽取
+                const randomIndex = Math.floor(Math.random() * PLAYERS.length);
+                TODAY_ANSWER = PLAYERS[randomIndex];
+                gameSubtitle.innerText = "無限遊玩模式：神祕球員已隨機重置！";
+                searchInput.placeholder = "輸入中職球員姓名，盡情猜測吧！";
+            }
+
+            //console.log(`[${currentGameMode === 'daily' ? '每日' : '無限'}] 當前答案（測試用）：`, TODAY_ANSWER.name);
+        }
+
+        // 💡 新增：切換模式邏輯
+        function switchMode(mode) {
+            if (currentGameMode === mode) return;
+            currentGameMode = mode;
+
+            const dailyBtn = document.getElementById('mode-daily');
+            const endlessBtn = document.getElementById('mode-endless');
+
+            if (mode === 'daily') {
+                dailyBtn.className = "px-3 py-1.5 rounded-lg bg-green-500 text-black transition-all";
+                endlessBtn.className = "px-3 py-1.5 rounded-lg text-gray-400 hover:text-white transition-all";
+                nextGameBtn.classList.add('hidden'); // 每日模式隱藏「再玩一場」
+            } else {
+                endlessBtn.className = "px-3 py-1.5 rounded-lg bg-green-500 text-black transition-all";
+                dailyBtn.className = "px-3 py-1.5 rounded-lg text-gray-400 hover:text-white transition-all";
+                nextGameBtn.classList.remove('hidden'); // 無限模式顯示「再玩一場」
+            }
+
+            startNewGame();
         }
 
         function setupSearchListener() {
@@ -205,7 +267,7 @@
                 <div class="flex items-center justify-center ${ageData.color} rounded-xl shadow-md">${player.age}${ageArrow}</div>
             `;
 
-            gridContainer.prepend(row); 
+            gridContainer.prepend(row); // 保持原本最新猜的在最上面
 
             if (player.id === TODAY_ANSWER.id) {
                 isGameOver = true;
@@ -225,7 +287,10 @@
                 : `可惜了！今天的正確答案是：${TODAY_ANSWER.name}`;
 
             const todayStrTW = new Date().toLocaleDateString('zh-TW');
-            let emojiText = `📊 CPBLdle 中職猜球員 #${todayStrTW}\n`;
+            
+            // 💡 分享文字稍微改動，加入模式標籤
+            const modeTag = currentGameMode === 'daily' ? '每日挑戰' : '無限遊玩';
+            let emojiText = `📊 CPBLdle 中職猜球員 (${modeTag}) #${todayStrTW}\n`;
             emojiText += `次數: ${guessHistory.length}/6\n\n`;
             
             guessHistory.slice().reverse().forEach(g => { 
