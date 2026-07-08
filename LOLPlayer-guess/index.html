@@ -8,49 +8,23 @@
     <style>
         input[type="text"] { font-size: 16px !important; }
 		/* ======================================================= */
-        /* 🔍 下拉自動完成選單：確保文字絕對不變成點點點             */
+        /* 🎨 歷史猜測表格容器優化：支援手機版左右滑動              */
         /* ======================================================= */
-        .autocomplete-suggestions {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #111827; /* 調整為深灰色，更融入 bg-gray-950 */
-            border: 1px solid #374151;
-            border-radius: 12px;
-            max-height: 240px;
-            overflow-y: auto;
-            z-index: 1000;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            backdrop-blur: sm;
+        /* 1. 外層包裹區：當內容超出螢幕寬度時，允許橫向滾動 */
+        .grid-scroll-wrapper {
+            width: 100%;
+            overflow-x: auto;          /* 關鍵：開啟橫向左右滾動 */
+            -webkit-overflow-scrolling: touch; /* 讓手機端滑動更順暢 */
+            padding-bottom: 5px;       /* 留一點空間給滾動條，視覺更舒服 */
         }
 
-        /* 這裡特別強制：選單內允許正常換行，絕對不准變成點點點 */
-        .suggestion-item {
-            padding: 12px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-b: 1px solid rgba(55, 65, 81, 0.3);
-            white-space: normal !important;     /* 允許正常換行 */
-            text-overflow: clip !important;     /* 關閉點點點 */
-            overflow: visible !important;       /* 允許文字顯示 */
-        }
-
-        .suggestion-item:hover {
-            background-color: #1f2937;
-        }
-
-        /* ======================================================= */
-        /* 🎨 歷史猜測表格比例調整：精準重新分配寬度                  */
-        /* ======================================================= */
+        /* 2. 表頭與內容列：給予一個固定的最小寬度（電腦版100%，手機版強制撐開不壓縮） */
         .grid-header, .guess-row {
             display: grid;
-            grid-template-columns: 1.5fr 0.8fr 0.9fr 0.9fr 1.4fr 1.7fr;
+            grid-template-columns: 1.4fr 0.8fr 0.9fr 0.9fr 1.4fr 1.8fr;
             gap: 6px;
             width: 100%;
+            min-width: 550px; /* ✨ 關鍵：強制給表格一個最低總寬度，確保在手機上文字有空間完整顯示 */
         }
 
         .grid-header {
@@ -67,7 +41,7 @@
             animation: flipIn 0.5s ease;
         }
 
-        /* 歷史格子：維持防炸裂的點點點功能 */
+        /* 3. 歷史格子：徹底拔除點點點，改用自然伸縮 */
         .grid-cell-lol {
             display: flex;
             align-items: center;
@@ -77,10 +51,9 @@
             box-sizing: border-box;
             line-height: 1.2;
             text-align: center;
-            padding: 0 4px;
-            overflow: hidden;       
-            white-space: nowrap;    
-            text-overflow: ellipsis;
+            padding: 0 6px;
+            /* 🚫 拔除舊版的 white-space: nowrap、overflow、text-overflow */
+            /* 讓文字自然緊湊，如果單字略長會微縮或微換行，但因為有 550px 護盾，基本都能完美單行顯示 */
         }
 
         @keyframes flipIn {
@@ -88,12 +61,13 @@
             100% { transform: rotateX(0deg); opacity: 1; }
         }
 
-        /* 📱 手機端與窄螢幕專屬防擠壓優化 */
+        /* 📱 手機端與窄螢幕專屬優化 */
         @media (max-width: 500px) {
-            .grid-header { font-size: 0.72rem; gap: 4px; }
+            .grid-header { gap: 4px; }
             .guess-row { gap: 4px; }
+            /* 手機版稍微縮小滾動區內的文字大小，讓滑動體驗更精緻 */
             .grid-header > div, .guess-row > div {
-                font-size: 0.68rem !important; 
+                font-size: 0.75rem !important; 
             }
         }
     </style>
@@ -131,13 +105,17 @@
             <div id="autocomplete-list" class="absolute w-full bg-gray-900 border border-gray-700 rounded-xl mt-2 max-h-60 overflow-y-auto hidden z-50 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-sm"></div>
         </div>
 
-        <div class="w-full flex flex-col gap-2 mt-2 bg-gray-900/40 p-3 md:p-5 rounded-2xl border border-gray-800/80 backdrop-blur-sm shadow-xl">
-            <div class="grid grid-cols-6 gap-1.5 md:gap-3 text-center text-xs md:text-sm font-black text-gray-400 border-b border-gray-800 pb-3 mb-1 tracking-wider">
-                <div>選手</div><div>位置</div><div>出生地</div><div>出生年</div><div>現任隊伍</div><div>曾效力隊</div>
-            </div>
+        <div class="w-full mt-2 bg-gray-900/40 p-3 md:p-5 rounded-2xl border border-gray-800/80 backdrop-blur-sm shadow-xl overflow-hidden">
             
-            <div id="grid-container" class="flex flex-col gap-2 md:gap-3"></div>
-        </div>
+            <div class="grid-scroll-wrapper">
+                
+                <div class="grid-header tracking-wider">
+                    <div>選手</div><div>位置</div><div>出生地</div><div>出生年</div><div>現任隊伍</div><div>曾效力隊</div>
+                </div>
+                
+                <div id="grid-container" class="flex flex-col gap-2 md:gap-3"></div>
+            
+            </div> </div>
 
         <div class="w-full bg-gray-900/60 border border-gray-800/80 rounded-2xl p-4 md:p-5 text-xs md:text-sm text-gray-400 flex flex-col gap-3 shadow-md">
             <h3 class="font-bold text-gray-200 border-b border-gray-800 pb-2">💡 遊戲說明與圖例提示</h3>
