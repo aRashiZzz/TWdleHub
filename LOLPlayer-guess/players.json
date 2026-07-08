@@ -32,7 +32,7 @@
     {
         "id": 4,
         "name": "BeBe",
-        "position": "Streamer",
+        "position": "Bot Laner",
         "country": "Taiwan",
         "birth_year": 1991,
         "招牌英雄": "Tristana、Kai'Sa、Ezreal、Caitlyn、Kalista",
@@ -55,7 +55,7 @@
         "position": "Top Laner",
         "country": "Taiwan",
         "birth_year": 1993,
-        "招牌英雄": "",
+        "招牌英雄": "睏寶",
         "current_team": "Taipei Berserkers",
         "past_teams": "KartRiderTeam、Taipei Assassins"
     },
@@ -102,7 +102,7 @@
     {
         "id": 11,
         "name": "DinTer",
-        "position": "Owner",
+        "position": "Jungler",
         "country": "Taiwan",
         "birth_year": 1990,
         "招牌英雄": "Jarvan IV、Gragas、Rek'Sai、Kha'Zix、Graves",
@@ -122,7 +122,7 @@
     {
         "id": 13,
         "name": "Lilballz",
-        "position": "Caster",
+        "position": "Jungler",
         "country": "Taiwan",
         "birth_year": 1988,
         "招牌英雄": "Alistar、Dr. Mundo、Olaf",
@@ -131,7 +131,7 @@
     },
     {
         "id": 14,
-        "name": "Stanley",
+        "name": "Top Laner",
         "position": "Manager",
         "country": "Taiwan",
         "birth_year": 1991,
@@ -142,7 +142,7 @@
     {
         "id": 15,
         "name": "Toyz",
-        "position": "Manager",
+        "position": "Mid Laner",
         "country": "Hong Kong",
         "birth_year": 1992,
         "招牌英雄": "Orianna、Twisted Fate、Anivia、Morgana、Karthus、Ryze、Aurelion Sol",
@@ -162,7 +162,7 @@
     {
         "id": 17,
         "name": "MiSTakE",
-        "position": "Manager",
+        "position": "Support",
         "country": "Taiwan",
         "birth_year": 1989,
         "招牌英雄": "Blitzcrank、Janna、Sona、Lulu",
@@ -272,7 +272,7 @@
     {
         "id": 28,
         "name": "MMD",
-        "position": "Streamer",
+        "position": "Top Laner",
         "country": "Taiwan",
         "birth_year": 1994,
         "招牌英雄": "",
@@ -322,7 +322,7 @@
     {
         "id": 33,
         "name": "NL",
-        "position": "Streamer",
+        "position": "Bot Laner",
         "country": "Taiwan",
         "birth_year": 1995,
         "招牌英雄": "Ashe",
@@ -360,19 +360,9 @@
         "past_teams": "Young Boss、CJ Entus"
     },
     {
-        "id": 37,
-        "name": "Nobo",
-        "position": "Sub/Jun",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Free Agent",
-        "past_teams": ""
-    },
-    {
         "id": 38,
         "name": "Mountain",
-        "position": "Caster",
+        "position": "Jungler",
         "country": "Taiwan",
         "birth_year": 1995,
         "招牌英雄": "Elise、Vi、Lee Sin",
@@ -400,46 +390,6 @@
         "past_teams": "PSG Talon、Meta Falcon Team"
     },
     {
-        "id": 41,
-        "name": "Real1ron",
-        "position": "Jungler",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Cheetahs",
-        "past_teams": "無前效力隊伍"
-    },
-    {
-        "id": 42,
-        "name": "BonBonD",
-        "position": "Bot Laner",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Defenders",
-        "past_teams": "無前效力隊伍"
-    },
-    {
-        "id": 43,
-        "name": "Xiaoyao",
-        "position": "Support",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "e-Sports Dragons Pro",
-        "past_teams": "Cheetahs"
-    },
-    {
-        "id": 44,
-        "name": "WuYan",
-        "position": "Bot Laner",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Free Agent",
-        "past_teams": ""
-    },
-    {
         "id": 45,
         "name": "AsSen",
         "position": "Coach",
@@ -448,26 +398,6 @@
         "招牌英雄": "",
         "current_team": "Free Agent",
         "past_teams": ""
-    },
-    {
-        "id": 46,
-        "name": "Chopper",
-        "position": "Mid Laner",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Free Agent",
-        "past_teams": ""
-    },
-    {
-        "id": 47,
-        "name": "Clurinus",
-        "position": "Support",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Defenders",
-        "past_teams": "無前效力隊伍"
     },
     {
         "id": 48,
@@ -502,7 +432,7 @@
     {
         "id": 51,
         "name": "Gear",
-        "position": "Streamer",
+        "position": "Mid Laner",
         "country": "Hong Kong",
         "birth_year": 1996,
         "招牌英雄": "",
@@ -540,26 +470,6 @@
         "past_teams": "Far East Eagle、Deep Cross Gaming"
     },
     {
-        "id": 55,
-        "name": "Yezi",
-        "position": "Streamer",
-        "country": "Taiwan",
-        "birth_year": 1991,
-        "招牌英雄": "Teemo",
-        "current_team": "Free Agent",
-        "past_teams": ""
-    },
-    {
-        "id": 56,
-        "name": "Wind",
-        "position": "Jungler",
-        "country": "Hong Kong",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Fireball",
-        "past_teams": "Hong Kong Esports"
-    },
-    {
         "id": 57,
         "name": "Raison",
         "position": "Bot Laner",
@@ -588,16 +498,6 @@
         "招牌英雄": "Zed、Ziggs",
         "current_team": "Neurons",
         "past_teams": "EBD LEGENDs、Hong Kong Esports"
-    },
-    {
-        "id": 60,
-        "name": "Rokenia",
-        "position": "Top Laner",
-        "country": "South Korea",
-        "birth_year": 1995,
-        "招牌英雄": "",
-        "current_team": "7th heaven",
-        "past_teams": "GashBears、Hong Kong Esports"
     },
     {
         "id": 61,
@@ -637,7 +537,7 @@
         "birth_year": 2003,
         "招牌英雄": "Kai'Sa",
         "current_team": "CTBC Flying Oyster",
-        "past_teams": "BLG Junior、Ultra Prime"
+        "past_teams": "Bilibili Gaming、Ultra Prime"
     },
     {
         "id": 65,
@@ -652,12 +552,12 @@
     {
         "id": 66,
         "name": "Ziv",
-        "position": "Streamer",
+        "position": "Top Laner",
         "country": "Taiwan",
         "birth_year": 1994,
         "招牌英雄": "",
-        "current_team": "Nate.A",
-        "past_teams": "EDward Gaming、PSG Talon"
+        "current_team": "PSG Talon",
+        "past_teams": "EDward Gaming、ahq eSports Club"
     },
     {
         "id": 67,
@@ -717,17 +617,7 @@
         "birth_year": 2000,
         "招牌英雄": "Sejuani、Zac",
         "current_team": "Nate9527",
-        "past_teams": "BOOM Esports、Impunity"
-    },
-    {
-        "id": 73,
-        "name": "Rainbow",
-        "position": "Mid Laner",
-        "country": "South Korea",
-        "birth_year": 1997,
-        "招牌英雄": "Viktor",
-        "current_team": "The Kings",
-        "past_teams": "Santos e-Sports、XTEN Esports"
+        "past_teams": "J Team、Impunity"
     },
     {
         "id": 74,
@@ -762,7 +652,7 @@
     {
         "id": 77,
         "name": "Westdoor",
-        "position": "Streamer",
+        "position": "Mid Laner",
         "country": "Taiwan",
         "birth_year": 1993,
         "招牌英雄": "Twisted Fate、Mordekaiser、Malzahar、Karthus、Fizz、Lissandra、Zed",
@@ -772,7 +662,7 @@
     {
         "id": 78,
         "name": "Albis",
-        "position": "Streamer",
+        "position": "Support",
         "country": "Taiwan",
         "birth_year": 1993,
         "招牌英雄": "Graves、Vayne、Ezreal、Caitlyn、Miss Fortune、Twitch",
@@ -827,27 +717,7 @@
         "birth_year": 1991,
         "招牌英雄": "Thresh、Sona",
         "current_team": "PSG Talon",
-        "past_teams": "eStar、Ultra Prime"
-    },
-    {
-        "id": 84,
-        "name": "Prydz",
-        "position": "Streamer",
-        "country": "Taiwan",
-        "birth_year": 1988,
-        "招牌英雄": "Elise、Irelia、Kennen",
-        "current_team": "J Team",
-        "past_teams": "Gamania Bears、GashBears"
-    },
-    {
-        "id": 85,
-        "name": "Naz",
-        "position": "Manager",
-        "country": "Taiwan",
-        "birth_year": 1993,
-        "招牌英雄": "Lee Sin、Ryze、Nocturne",
-        "current_team": "SuperEsports",
-        "past_teams": "ahq Girls、GashBears"
+        "past_teams": "ahq eSports Club、Ultra Prime"
     },
     {
         "id": 86,
@@ -858,16 +728,6 @@
         "招牌英雄": "Jarvan IV",
         "current_team": "ahq eSports Club",
         "past_teams": "無前效力隊伍"
-    },
-    {
-        "id": 87,
-        "name": "Lantyr",
-        "position": "Analyst",
-        "country": "Taiwan",
-        "birth_year": 1995,
-        "招牌英雄": "Lee Sin、Vi、Volibear",
-        "current_team": "Fireball",
-        "past_teams": "Tt Dragons Taiwan、ahq eSports Club"
     },
     {
         "id": 88,
@@ -888,36 +748,6 @@
         "招牌英雄": "Udyr、Nocturne",
         "current_team": "J Team",
         "past_teams": "JD Gaming、LGD Gaming"
-    },
-    {
-        "id": 90,
-        "name": "os4",
-        "position": "Top Laner",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Free Agent",
-        "past_teams": ""
-    },
-    {
-        "id": 91,
-        "name": "Perfume",
-        "position": "Support",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Free Agent",
-        "past_teams": ""
-    },
-    {
-        "id": 92,
-        "name": "LeMei",
-        "position": "Substitute",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Free Agent",
-        "past_teams": ""
     },
     {
         "id": 93,
@@ -1000,16 +830,6 @@
         "past_teams": "WhereAreyouFrom、J Team"
     },
     {
-        "id": 101,
-        "name": "DeuL",
-        "position": "Coach",
-        "country": "South Korea",
-        "birth_year": 1994,
-        "招牌英雄": "",
-        "current_team": "Nova Esports",
-        "past_teams": "MEGA、WhereAreyouFrom"
-    },
-    {
         "id": 102,
         "name": "Dreamer",
         "position": "Coach",
@@ -1030,16 +850,6 @@
         "past_teams": "HK Attitude Priest、Machi Esports"
     },
     {
-        "id": 104,
-        "name": "Move",
-        "position": "Jungler",
-        "country": "South Korea",
-        "birth_year": 1994,
-        "招牌英雄": "Nidalee",
-        "current_team": "Bursaspor Esports",
-        "past_teams": "Fenerbahçe、Machi Esports"
-    },
-    {
         "id": 105,
         "name": "CorGi",
         "position": "Coach",
@@ -1048,26 +858,6 @@
         "招牌英雄": "",
         "current_team": "SoftBank HAWKS",
         "past_teams": "EDward Gaming、PSG Talon"
-    },
-    {
-        "id": 106,
-        "name": "Breaker",
-        "position": "Coach",
-        "country": "Taiwan",
-        "birth_year": 1997,
-        "招牌英雄": "",
-        "current_team": "J Team 2",
-        "past_teams": "Machi Esports、J Team"
-    },
-    {
-        "id": 107,
-        "name": "Ender",
-        "position": "Top Laner",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Machi Esports",
-        "past_teams": "無前效力隊伍"
     },
     {
         "id": 108,
@@ -1290,26 +1080,6 @@
         "past_teams": "無前效力隊伍"
     },
     {
-        "id": 130,
-        "name": "AnAn",
-        "position": "Manager",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "J Team",
-        "past_teams": "J Team 2"
-    },
-    {
-        "id": 131,
-        "name": "RLun",
-        "position": "Top Laner",
-        "country": "Taiwan",
-        "birth_year": 1993,
-        "招牌英雄": "",
-        "current_team": "ahq Fighter",
-        "past_teams": "Submarines、J Team"
-    },
-    {
         "id": 132,
         "name": "Kartis",
         "position": "Top Laner",
@@ -1380,26 +1150,6 @@
         "past_teams": "Kowloon Esports、G-Rex"
     },
     {
-        "id": 139,
-        "name": "Epic",
-        "position": "Jungler",
-        "country": "Hong Kong",
-        "birth_year": 1998,
-        "招牌英雄": "",
-        "current_team": "Equinox Core",
-        "past_teams": "BOOM Esports、Impunity"
-    },
-    {
-        "id": 140,
-        "name": "Raise",
-        "position": "Coach",
-        "country": "South Korea",
-        "birth_year": 1997,
-        "招牌英雄": "",
-        "current_team": "LOUD",
-        "past_teams": "Dire Wolves、SoftBank HAWKS"
-    },
-    {
         "id": 141,
         "name": "baybay",
         "position": "Jungler",
@@ -1408,36 +1158,6 @@
         "招牌英雄": "Lee Sin、Vi、Jarvan IV",
         "current_team": "G-Rex Infinite",
         "past_teams": "Royal Club、G-Rex"
-    },
-    {
-        "id": 142,
-        "name": "Stitch",
-        "position": "Coach",
-        "country": "South Korea",
-        "birth_year": 1996,
-        "招牌英雄": "",
-        "current_team": "WhereAreyouFrom",
-        "past_teams": "G-Rex、Jin Air Green Wings"
-    },
-    {
-        "id": 143,
-        "name": "Laba",
-        "position": "Coach",
-        "country": "Taiwan",
-        "birth_year": 1999,
-        "招牌英雄": "Rengar、Lee Sin、Nidalee",
-        "current_team": "Alpha Esports",
-        "past_teams": "Vivo Keyd、LNG Academy"
-    },
-    {
-        "id": 144,
-        "name": "Benny",
-        "position": "Coach",
-        "country": "Taiwan",
-        "birth_year": 1998,
-        "招牌英雄": "",
-        "current_team": "TT Gaming",
-        "past_teams": "UP Academy、Ultra Prime"
     },
     {
         "id": 145,
@@ -1452,22 +1172,12 @@
     {
         "id": 146,
         "name": "Liang",
-        "position": "Caster",
+        "position": "Top Laner",
         "country": "Taiwan",
         "birth_year": 1998,
         "招牌英雄": "",
         "current_team": "Beyond Gaming",
         "past_teams": "ahq Fighter、MAD Team"
-    },
-    {
-        "id": 147,
-        "name": "B1ven",
-        "position": "Mid Laner",
-        "country": "Taiwan",
-        "birth_year": 2001,
-        "招牌英雄": "",
-        "current_team": "Far East Eagle",
-        "past_teams": "G-Rex Infinite、HK Attitude"
     },
     {
         "id": 148,
@@ -1480,16 +1190,6 @@
         "past_teams": "PSG Talon Academy、PSG Talon"
     },
     {
-        "id": 149,
-        "name": "Wen",
-        "position": "Mid Laner",
-        "country": "Taiwan",
-        "birth_year": 1999,
-        "招牌英雄": "",
-        "current_team": "PSG Talon Academy",
-        "past_teams": "Hungkuang Falcon、Meta Falcon Team"
-    },
-    {
         "id": 150,
         "name": "MnM",
         "position": "Bot Laner",
@@ -1498,16 +1198,6 @@
         "招牌英雄": "",
         "current_team": "Frank Esports",
         "past_teams": "HK Attitude"
-    },
-    {
-        "id": 151,
-        "name": "Hsien",
-        "position": "Support",
-        "country": "",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "HK Attitude",
-        "past_teams": "無前效力隊伍"
     },
     {
         "id": 152,
@@ -1538,16 +1228,6 @@
         "招牌英雄": "",
         "current_team": "HK Attitude",
         "past_teams": "AOC Gaming"
-    },
-    {
-        "id": 155,
-        "name": "Holo",
-        "position": "Jungler",
-        "country": "Hong Kong",
-        "birth_year": 2000,
-        "招牌英雄": "",
-        "current_team": "OP Team",
-        "past_teams": "BOOM Esports、Frank Esports"
     },
     {
         "id": 156,
@@ -1598,196 +1278,6 @@
         "招牌英雄": "Thresh、Leona",
         "current_team": "Vivo Keyd Stars",
         "past_teams": "Frank Esports、CTBC Flying Oyster"
-    },
-    {
-        "id": 161,
-        "name": "cyeol",
-        "position": "Mid Laner",
-        "country": "South Korea",
-        "birth_year": 0,
-        "招牌英雄": "Azir",
-        "current_team": "Royal Youth",
-        "past_teams": "DS Gaming、HK Attitude"
-    },
-    {
-        "id": 162,
-        "name": "Riris",
-        "position": "Top Laner",
-        "country": "South Korea",
-        "birth_year": 1994,
-        "招牌英雄": "Ezreal、Vayne",
-        "current_team": "VSG",
-        "past_teams": "HK Attitude、Winners"
-    },
-    {
-        "id": 163,
-        "name": "BBTY",
-        "position": "Coach",
-        "country": "Singapore",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "HK Attitude",
-        "past_teams": "Vestigial、Team Flash"
-    },
-    {
-        "id": 164,
-        "name": "Nova",
-        "position": "Jungler",
-        "country": "South Korea",
-        "birth_year": 0,
-        "招牌英雄": "Jarvan IV、Lee Sin、Sejuani",
-        "current_team": "All Knights",
-        "past_teams": "2144 Gaming、HK Attitude"
-    },
-    {
-        "id": 165,
-        "name": "Destiny",
-        "position": "Support",
-        "country": "South Korea",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "HK Attitude",
-        "past_teams": "Invictus Gaming、Young Glory"
-    },
-    {
-        "id": 166,
-        "name": "Once",
-        "position": "Jungler",
-        "country": "South Korea",
-        "birth_year": 1998,
-        "招牌英雄": "",
-        "current_team": "PENTAGRAM",
-        "past_teams": "BPZ、HK Attitude"
-    },
-    {
-        "id": 167,
-        "name": "228",
-        "position": "Coach",
-        "country": "Hong Kong",
-        "birth_year": 1990,
-        "招牌英雄": "",
-        "current_team": "F-Soul Esports",
-        "past_teams": "TWOTWOEIGHT、Team Orion"
-    },
-    {
-        "id": 168,
-        "name": "Lyrics",
-        "position": "Support",
-        "country": "Hong Kong",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "HK Attitude",
-        "past_teams": "YouCantStopMe、EP.YCSM"
-    },
-    {
-        "id": 169,
-        "name": "STony",
-        "position": "Bot Laner",
-        "country": "Hong Kong",
-        "birth_year": 0,
-        "招牌英雄": "Ezreal",
-        "current_team": "HK Attitude",
-        "past_teams": "LGD Gaming、EP.YCSM"
-    },
-    {
-        "id": 170,
-        "name": "Heovax",
-        "position": "Mid Laner",
-        "country": "Hong Kong",
-        "birth_year": 1992,
-        "招牌英雄": "Quinn、Syndra、Anivia",
-        "current_team": "HK Attitude",
-        "past_teams": "Hong Kong Carries"
-    },
-    {
-        "id": 171,
-        "name": "Owl",
-        "position": "Support",
-        "country": "Hong Kong",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "EBD LEGENDs",
-        "past_teams": "HK Attitude、EP.YCSM"
-    },
-    {
-        "id": 172,
-        "name": "Noel",
-        "position": "Top Laner",
-        "country": "Hong Kong",
-        "birth_year": 1993,
-        "招牌英雄": "Nidalee",
-        "current_team": "No Game No Life",
-        "past_teams": "Royal Club Tian Ci、HK Attitude"
-    },
-    {
-        "id": 173,
-        "name": "Nogod",
-        "position": "Bot Laner",
-        "country": "Hong Kong",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "HK Attitude",
-        "past_teams": "YouCantStopMe"
-    },
-    {
-        "id": 174,
-        "name": "cdwN",
-        "position": "Support",
-        "country": "Hong Kong",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "HK Attitude",
-        "past_teams": "無前效力隊伍"
-    },
-    {
-        "id": 175,
-        "name": "perhapstky",
-        "position": "Support",
-        "country": "Hong Kong",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "YouCantStopMe",
-        "past_teams": "HK Attitude"
-    },
-    {
-        "id": 176,
-        "name": "Wind",
-        "position": "Bot Laner",
-        "country": "Hong Kong",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "EBD LEGENDs",
-        "past_teams": "CrossGaming、HK Attitude"
-    },
-    {
-        "id": 177,
-        "name": "Fai",
-        "position": "Jungler",
-        "country": "Hong Kong",
-        "birth_year": 0,
-        "招牌英雄": "Maokai",
-        "current_team": "HK Attitude",
-        "past_teams": "CrossGaming"
-    },
-    {
-        "id": 178,
-        "name": "Yau",
-        "position": "Mid Laner",
-        "country": "Hong Kong",
-        "birth_year": 0,
-        "招牌英雄": "Yasuo、Zed、Orianna",
-        "current_team": "EBD LEGENDs",
-        "past_teams": "HK Attitude"
-    },
-    {
-        "id": 179,
-        "name": "ReD",
-        "position": "Top Laner",
-        "country": "Hong Kong",
-        "birth_year": 1994,
-        "招牌英雄": "",
-        "current_team": "EBD LEGENDs",
-        "past_teams": "IceLanD、HK Attitude"
     },
     {
         "id": 180,
@@ -1880,16 +1370,6 @@
         "past_teams": "Dignitas、Golden Guardians"
     },
     {
-        "id": 189,
-        "name": "Yuwan",
-        "position": "Analyst",
-        "country": "Taiwan",
-        "birth_year": 1999,
-        "招牌英雄": "Poppy、Gnar、Camille",
-        "current_team": "PSG Talon Academy",
-        "past_teams": "Alpha Esports、PSG Talon"
-    },
-    {
         "id": 190,
         "name": "Tank",
         "position": "Mid Laner",
@@ -1898,16 +1378,6 @@
         "招牌英雄": "Azir、Lissandra、Viktor、Xerath",
         "current_team": "PSG Talon",
         "past_teams": "ESports Connected、Spear Gaming"
-    },
-    {
-        "id": 191,
-        "name": "WeiLun",
-        "position": "Bot Laner",
-        "country": "Taiwan",
-        "birth_year": 2002,
-        "招牌英雄": "",
-        "current_team": "Alpha Esports",
-        "past_teams": "Flash Husky"
     },
     {
         "id": 192,
@@ -1928,36 +1398,6 @@
         "招牌英雄": "",
         "current_team": "Deep Cross Gaming",
         "past_teams": "Beyond Academy、Beyond Gaming"
-    },
-    {
-        "id": 194,
-        "name": "S1aytrue",
-        "position": "Support",
-        "country": "Taiwan",
-        "birth_year": 2001,
-        "招牌英雄": "",
-        "current_team": "Beyond Gaming",
-        "past_teams": "HK Attitude、CTBC Flying Oyster"
-    },
-    {
-        "id": 195,
-        "name": "Sein",
-        "position": "Manager",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "CTBC Flying Oyster",
-        "past_teams": "HK Attitude、Beyond Gaming"
-    },
-    {
-        "id": 196,
-        "name": "Keres",
-        "position": "Support",
-        "country": "Hong Kong",
-        "birth_year": 1999,
-        "招牌英雄": "",
-        "current_team": "Viper Night Raider",
-        "past_teams": "Sponge Gaming、Ground Zero"
     },
     {
         "id": 197,
@@ -1990,16 +1430,6 @@
         "past_teams": "Alternative Gaming、Impunity"
     },
     {
-        "id": 200,
-        "name": "Sorrymbggff",
-        "position": "Top Laner",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "Aatrox",
-        "current_team": "Impunity",
-        "past_teams": "Shih Hsin Meow Meow、Alternative Gaming"
-    },
-    {
         "id": 201,
         "name": "fung1028",
         "position": "Jungler",
@@ -2030,16 +1460,6 @@
         "past_teams": "BLG Junior"
     },
     {
-        "id": 204,
-        "name": "BoxeR2",
-        "position": "Bot Laner",
-        "country": "Hong Kong",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Frank Academy",
-        "past_teams": "Alternative Gaming、Impunity"
-    },
-    {
         "id": 205,
         "name": "SYZ",
         "position": "Top Laner",
@@ -2048,106 +1468,6 @@
         "招牌英雄": "",
         "current_team": "Impunity",
         "past_teams": "CFO Academy、Alternative Gaming"
-    },
-    {
-        "id": 206,
-        "name": "Yuhe",
-        "position": "Top Laner",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "CFO Academy",
-        "past_teams": "Alternative Gaming、Impunity"
-    },
-    {
-        "id": 207,
-        "name": "Yuk1Jie",
-        "position": "Jungler",
-        "country": "Taiwan",
-        "birth_year": 2005,
-        "招牌英雄": "",
-        "current_team": "Hungkuang Falcon",
-        "past_teams": "Alternative Gaming、Impunity"
-    },
-    {
-        "id": 208,
-        "name": "ichs",
-        "position": "Mid Laner",
-        "country": "Hong Kong",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "Alternative Gaming"
-    },
-    {
-        "id": 209,
-        "name": "Ray",
-        "position": "Mid Laner",
-        "country": "Taiwan",
-        "birth_year": 2005,
-        "招牌英雄": "",
-        "current_team": "Hungkuang Falcon",
-        "past_teams": "Alternative Gaming、Impunity"
-    },
-    {
-        "id": 210,
-        "name": "Arashi",
-        "position": "Jungler",
-        "country": "Malaysia",
-        "birth_year": 1999,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "Berjaya Dragons、SEM9"
-    },
-    {
-        "id": 211,
-        "name": "Shera",
-        "position": "Mid Laner",
-        "country": "Singapore",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "無前效力隊伍"
-    },
-    {
-        "id": 212,
-        "name": "Blaze",
-        "position": "Bot Laner",
-        "country": "Singapore",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Faerie Charm",
-        "past_teams": "Impunity、Nocturnals"
-    },
-    {
-        "id": 213,
-        "name": "Felia",
-        "position": "Coach",
-        "country": "Malaysia",
-        "birth_year": 2001,
-        "招牌英雄": "",
-        "current_team": "Faerie Charm",
-        "past_teams": "Impunity、Trinity"
-    },
-    {
-        "id": 214,
-        "name": "Smerv",
-        "position": "Support",
-        "country": "Singapore",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "無前效力隊伍"
-    },
-    {
-        "id": 215,
-        "name": "Natur3",
-        "position": "Support",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "無前效力隊伍"
     },
     {
         "id": 216,
@@ -2159,26 +1479,7 @@
         "current_team": "Impunity",
         "past_teams": "Santos e-Sports、XTEN Esports"
     },
-    {
-        "id": 217,
-        "name": "Yusin",
-        "position": "Support",
-        "country": "South Korea",
-        "birth_year": 1999,
-        "招牌英雄": "",
-        "current_team": "GnG Esports",
-        "past_teams": "Griffin、Impunity"
-    },
-    {
-        "id": 218,
-        "name": "Lz",
-        "position": "Bot Laner",
-        "country": "Taiwan",
-        "birth_year": 2000,
-        "招牌英雄": "",
-        "current_team": "Nate.A",
-        "past_teams": "J Team 2、Impunity"
-    },
+
     {
         "id": 219,
         "name": "Winnie",
@@ -2220,16 +1521,6 @@
         "past_teams": "F-Soul Esports、BLG Junior"
     },
     {
-        "id": 223,
-        "name": "Arykelic",
-        "position": "Mid Laner",
-        "country": "Singapore",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "Sovereign、Resurgence"
-    },
-    {
         "id": 224,
         "name": "Bureiku",
         "position": "Bot Laner",
@@ -2260,26 +1551,6 @@
         "past_teams": "無前效力隊伍"
     },
     {
-        "id": 227,
-        "name": "Lucifer",
-        "position": "Top Laner",
-        "country": "",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "無前效力隊伍"
-    },
-    {
-        "id": 228,
-        "name": "CYH",
-        "position": "Jungler",
-        "country": "Singapore",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "Resurgence、Sovereign"
-    },
-    {
         "id": 229,
         "name": "QaspieL",
         "position": "Jungler",
@@ -2288,46 +1559,6 @@
         "招牌英雄": "",
         "current_team": "SEM9",
         "past_teams": "Axis Empire、Impunity"
-    },
-    {
-        "id": 230,
-        "name": "Quake",
-        "position": "Bot Laner",
-        "country": "Singapore",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "Sovereign、Resurgence"
-    },
-    {
-        "id": 231,
-        "name": "Tuzi",
-        "position": "Top Laner",
-        "country": "",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "無前效力隊伍"
-    },
-    {
-        "id": 232,
-        "name": "Penguinn",
-        "position": "Jungler",
-        "country": "Singapore",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "Resurgence"
-    },
-    {
-        "id": 233,
-        "name": "Atheris",
-        "position": "Mid Laner",
-        "country": "",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "無前效力隊伍"
     },
     {
         "id": 234,
@@ -2340,86 +1571,6 @@
         "past_teams": "Impunity"
     },
     {
-        "id": 235,
-        "name": "887",
-        "position": "Top Laner",
-        "country": "Singapore",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "無前效力隊伍"
-    },
-    {
-        "id": 236,
-        "name": "Prodigy",
-        "position": "Jungler",
-        "country": "Singapore",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "無前效力隊伍"
-    },
-    {
-        "id": 237,
-        "name": "Orbic",
-        "position": "Mid Laner",
-        "country": "Singapore",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "無前效力隊伍"
-    },
-    {
-        "id": 238,
-        "name": "Crixus",
-        "position": "Top Laner",
-        "country": "United Kingdom",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "無前效力隊伍"
-    },
-    {
-        "id": 239,
-        "name": "Zancazor",
-        "position": "Sub/Jun",
-        "country": "Singapore",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Xavier Esports",
-        "past_teams": "Impunity、Mythus Esports"
-    },
-    {
-        "id": 240,
-        "name": "Dantiz",
-        "position": "Bot Laner",
-        "country": "Singapore",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "Team Corgi"
-    },
-    {
-        "id": 241,
-        "name": "Lotus",
-        "position": "Bot Laner",
-        "country": "Singapore",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "無前效力隊伍"
-    },
-    {
-        "id": 242,
-        "name": "Caption",
-        "position": "Support",
-        "country": "Singapore",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "無前效力隊伍"
-    },
-    {
         "id": 243,
         "name": "Vengeance",
         "position": "Jungler",
@@ -2430,16 +1581,6 @@
         "past_teams": "無前效力隊伍"
     },
     {
-        "id": 244,
-        "name": "Hevinix",
-        "position": "Coach",
-        "country": "Singapore",
-        "birth_year": 1998,
-        "招牌英雄": "Jayce、Xerath、Rengar、Bel'Veth",
-        "current_team": "RATE Gaming",
-        "past_teams": "Mythos Gaming、Viperio"
-    },
-    {
         "id": 245,
         "name": "CrankO",
         "position": "Support",
@@ -2448,16 +1589,6 @@
         "招牌英雄": "",
         "current_team": "Impunity",
         "past_teams": "無前效力隊伍"
-    },
-    {
-        "id": 246,
-        "name": "Laze",
-        "position": "Support",
-        "country": "Singapore",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "Impunity",
-        "past_teams": "Team Corgi"
     },
     {
         "id": 247,
@@ -2520,56 +1651,6 @@
         "past_teams": "iG Young、Frank Esports"
     },
     {
-        "id": 253,
-        "name": "kingpo54",
-        "position": "Support",
-        "country": "Hong Kong",
-        "birth_year": 0,
-        "招牌英雄": "Pyke",
-        "current_team": "Frank Esports",
-        "past_teams": "無前效力隊伍"
-    },
-    {
-        "id": 254,
-        "name": "Sailuo",
-        "position": "Top Laner",
-        "country": "China",
-        "birth_year": 0,
-        "招牌英雄": "K'Sante",
-        "current_team": "HELL PIGS",
-        "past_teams": "MiaoJing"
-    },
-    {
-        "id": 255,
-        "name": "TA0",
-        "position": "Jungler",
-        "country": "China",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "HELL PIGS",
-        "past_teams": "UP Academy、MiaoJing"
-    },
-    {
-        "id": 256,
-        "name": "godfan",
-        "position": "Mid Laner",
-        "country": "Hong Kong",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "HELL PIGS",
-        "past_teams": "無前效力隊伍"
-    },
-    {
-        "id": 257,
-        "name": "XiaoYang",
-        "position": "Bot Laner",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "Kai'Sa、Lucian、Jinx",
-        "current_team": "HELL PIGS",
-        "past_teams": "無前效力隊伍"
-    },
-    {
         "id": 258,
         "name": "HotPot",
         "position": "Jungler",
@@ -2598,16 +1679,6 @@
         "招牌英雄": "Nautilus、Rell、Alistar",
         "current_team": "HELL PIGS",
         "past_teams": "Hungkuang Falcon、CFO Academy"
-    },
-    {
-        "id": 261,
-        "name": "Jabu",
-        "position": "Jungler",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "HELL PIGS",
-        "past_teams": "無前效力隊伍"
     },
     {
         "id": 262,
@@ -2652,7 +1723,7 @@
     {
         "id": 266,
         "name": "Godtone",
-        "position": "Owner",
+        "position": "Jungler",
         "country": "Taiwan",
         "birth_year": 1988,
         "招牌英雄": "Gragas、Lee Sin",
@@ -2668,26 +1739,6 @@
         "招牌英雄": "Graves",
         "current_team": "HELL PIGS",
         "past_teams": "Vanung Lion、TNU Eagle"
-    },
-    {
-        "id": 268,
-        "name": "Prage",
-        "position": "Bot Laner",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "Tristana、Vayne",
-        "current_team": "Shadow Keepers",
-        "past_teams": "Hungkuang Falcon、wangting"
-    },
-    {
-        "id": 269,
-        "name": "Kazmma",
-        "position": "Jungler",
-        "country": "Taiwan",
-        "birth_year": 0,
-        "招牌英雄": "Rengar、Poppy、Vi",
-        "current_team": "HELL PIGS",
-        "past_teams": "無前效力隊伍"
     },
     {
         "id": 270,
@@ -2778,25 +1829,5 @@
         "招牌英雄": "",
         "current_team": "HELL PIGS",
         "past_teams": "Youth Warriors"
-    },
-    {
-        "id": 279,
-        "name": "Devoured",
-        "position": "Jungler",
-        "country": "Philippines",
-        "birth_year": 0,
-        "招牌英雄": "Viego",
-        "current_team": "West Point",
-        "past_teams": "West Point Academy"
-    },
-    {
-        "id": 280,
-        "name": "whisper",
-        "position": "Jungler",
-        "country": "China",
-        "birth_year": 0,
-        "招牌英雄": "",
-        "current_team": "West Point",
-        "past_teams": "AL.Young、wangting"
     }
 ]
