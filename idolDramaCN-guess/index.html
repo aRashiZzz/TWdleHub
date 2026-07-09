@@ -419,228 +419,258 @@
     </div>
 
     <script>
-        let dramaDatabase = [];
-        let todayAnswer = null;
-        let guessedCount = 0;
-        let gameActive = true;
-        let answerActors = []; 
-        let gameMode = 'daily'; 
+        // 💡 使用 IIFE 封裝所有遊戲邏輯，防止外部透過 Console 存取內部變數作弊
+const gameModule = (function() {
+    // 🔒 這些核心變數全部被鎖在模組內部，外人無法從 Console 查看或修改
+    let dramaDatabase = [];
+    let todayAnswer = null;
+    let guessedCount = 0;
+    let gameActive = true;
+    let answerActors = []; 
+    let gameMode = 'daily'; 
 
-        async function loadJSON() {
-            try {
-                const response = await fetch('china_drama_2026_blue_links_only.json?v=' + new Date().getTime());
-                dramaDatabase = await response.json();
-                
-                if(dramaDatabase.length > 0) {
-                    initGame();
-                    initAutocomplete();
-                    setupModeToggle();
-                } else {
-                    alert("JSON 資料庫內無資料！");
-                }
-            } catch (error) {
-                console.error("讀取 JSON 錯誤:", error);
-                document.getElementById('hint-actors').innerText = "❌ 無法讀取 JSON 檔案，請確保使用本地伺服器開啟本網頁。";
-            }
+    // 內部物件：這幾個是在 HTML 元素中需要用到的 DOM
+    const input = document.getElementById('guess-input');
+    const suggBox = document.getElementById('suggestions');
+    const submitBtn = document.getElementById('submit-btn');
+    const nextBtn = document.getElementById('next-btn');
+
+    // 💡 字串雜湊函式（String Hash）：依據日期生成固定 Seed，避免玩家直接看到日期公式
+    function getHashCode(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = (hash << 5) - hash + str.charCodeAt(i);
+            hash |= 0; 
         }
+        return Math.abs(hash);
+    }
 
-        function initGame() {
-            guessedCount = 0;
-            gameActive = true;
+    // 初始化：讀取本地改好的 JSON 檔案
+    async function loadJSON() {
+        try {
+            const response = await fetch('china_drama_2026_blue_links_only.json?v=' + new Date().getTime());
+            dramaDatabase = await response.json();
             
-            document.getElementById('guess-rows-container').innerHTML = '';
-            document.getElementById('results-table').style.display = 'none';
-            document.getElementById('game-message').style.display = 'none';
-            document.getElementById('next-btn').style.display = 'none';
-            document.getElementById('submit-btn').disabled = false;
-            document.getElementById('guess-input').disabled = false;
-            document.getElementById('hint-count').innerText = '0';
-            document.getElementById('hint-actors').innerText = '尚未開始猜測，請輸入劇名試試看！';
-
-            if (gameMode === 'daily') {
-                document.getElementById('game-subtitle').innerText = "每天一題，憑線索猜出熱門中國連續劇！";
-                const today = new Date();
-                const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
-                const index = dateSeed % dramaDatabase.length;
-                todayAnswer = dramaDatabase[index];
+            if(dramaDatabase.length > 0) {
+                initGame();
+                initAutocomplete();
+                setupModeToggle();
+                setupInputListeners(); // 綁定輸入與點擊事件
             } else {
-                document.getElementById('game-subtitle').innerText = "⚡ 無限挑戰模式：隨機出題，答對後可挑戰下一題！";
-                const randomIndex = Math.floor(Math.random() * dramaDatabase.length);
-                todayAnswer = dramaDatabase[randomIndex];
+                alert("JSON 資料庫內無資料！");
             }
+        } catch (error) {
+            console.error("讀取 JSON 錯誤:", error);
+            document.getElementById('hint-actors').innerText = "❌ 無法讀取 JSON 檔案，請確保使用本地伺服器開啟本網頁。";
+        }
+    }
 
-            answerActors = [...todayAnswer.actors].sort(() => Math.random() - 0.5);
+    // 核心出題邏輯
+    function initGame() {
+        guessedCount = 0;
+        gameActive = true;
+        
+        document.getElementById('guess-rows-container').innerHTML = '';
+        document.getElementById('results-table').style.display = 'none';
+        document.getElementById('game-message').style.display = 'none';
+        nextBtn.style.display = 'none';
+        submitBtn.disabled = false;
+        input.disabled = false;
+        document.getElementById('hint-count').innerText = '0';
+        document.getElementById('hint-actors').innerText = '尚未開始猜測，請輸入劇名試試看！';
+
+        if (gameMode === 'daily') {
+            document.getElementById('game-subtitle').innerText = "每天一題，憑線索猜出熱門中國連續劇！";
+            
+            // 安全性升級：仿照 CPBL 使用字串雜湊，不讓玩家輕易解出日期規律
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const seed = getHashCode(todayStr);
+            const index = seed % dramaDatabase.length;
+            todayAnswer = dramaDatabase[index];
+        } else {
+            document.getElementById('game-subtitle').innerText = "⚡ 無限挑戰模式：隨機出題，答對後可挑戰下一題！";
+            const randomIndex = Math.floor(Math.random() * dramaDatabase.length);
+            todayAnswer = dramaDatabase[randomIndex];
         }
 
-        function setupModeToggle() {
-            const btnDaily = document.getElementById('mode-daily');
-            const btnEndless = document.getElementById('mode-endless');
+        answerActors = [...todayAnswer.actors].sort(() => Math.random() - 0.5);
+    }
 
-            btnDaily.addEventListener('click', () => {
-                if (gameMode === 'daily') return;
-                gameMode = 'daily';
-                btnDaily.classList.add('active');
-                btnEndless.classList.remove('active');
-                initGame();
-            });
+    // 切換遊戲模式（每日/無限）
+    function switchMode(mode) {
+        if (gameMode === mode) return;
+        gameMode = mode;
 
-            btnEndless.addEventListener('click', () => {
-                if (gameMode === 'endless') return;
-                gameMode = 'endless';
-                btnEndless.classList.add('active');
-                btnDaily.classList.remove('active');
-                initGame();
-            });
+        const btnDaily = document.getElementById('mode-daily');
+        const btnEndless = document.getElementById('mode-endless');
 
-            document.getElementById('next-btn').addEventListener('click', initGame);
+        if (mode === 'daily') {
+            btnDaily.classList.add('active');
+            btnEndless.classList.remove('active');
+        } else {
+            btnEndless.classList.add('active');
+            btnDaily.classList.remove('active');
         }
+        initGame();
+    }
 
-        function initAutocomplete() {
-            const input = document.getElementById('guess-input');
-            const suggBox = document.getElementById('suggestions');
+    function setupModeToggle() {
+        document.getElementById('mode-daily').addEventListener('click', () => switchMode('daily'));
+        document.getElementById('mode-endless').addEventListener('click', () => switchMode('endless'));
+        nextBtn.addEventListener('click', initGame);
+    }
 
-            input.addEventListener('input', () => {
-                const val = input.value.trim().toLowerCase();
-                suggBox.innerHTML = '';
-                if (!val) { suggBox.style.display = 'none'; return; }
+    function initAutocomplete() {
+        input.addEventListener('input', () => {
+            const val = input.value.trim().toLowerCase();
+            suggBox.innerHTML = '';
+            if (!val) { suggBox.style.display = 'none'; return; }
 
-                const matches = dramaDatabase.filter(d => d.title.toLowerCase().includes(val)).slice(0, 5);
-                
-                if(matches.length > 0) {
-                    matches.forEach(m => {
-                        const div = document.createElement('div');
-                        div.className = 'suggestion-item';
-                        div.innerText = m.title;
-                        div.addEventListener('click', () => {
-                            input.value = m.title;
-                            suggBox.style.display = 'none';
-                        });
-                        suggBox.appendChild(div);
+            const matches = dramaDatabase.filter(d => d.title.toLowerCase().includes(val)).slice(0, 5);
+            
+            if(matches.length > 0) {
+                matches.forEach(m => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.innerText = m.title;
+                    div.addEventListener('click', () => {
+                        input.value = m.title;
+                        suggBox.style.display = 'none';
                     });
-                    suggBox.style.display = 'block';
-                } else {
-                    suggBox.style.display = 'none';
-                }
-            });
-
-            document.addEventListener('click', (e) => {
-                if (e.target !== input) suggBox.style.display = 'none';
-            });
-        }
-
-        function handleGuess() {
-            if (!gameActive) return;
-            const input = document.getElementById('guess-input');
-            const guessTitle = input.value.trim();
-            
-            const userGuess = dramaDatabase.find(d => d.title.toLowerCase() === guessTitle.toLowerCase());
-            if (!userGuess) {
-                alert("找不到這部陸劇，請選擇下拉選單內有的劇名喔！");
-                return;
-            }
-
-            guessedCount++;
-            input.value = '';
-            document.getElementById('results-table').style.display = 'block';
-
-            renderRow(userGuess);
-            updateActorHint();
-
-            if (userGuess.title === todayAnswer.title) {
-                endGame(true, `🎉 太強了！答案就是《${todayAnswer.title}》！你一共猜了 ${guessedCount} 次。`);
-            }
-        }
-
-        function renderRow(guess) {
-            const container = document.getElementById('guess-rows-container');
-            const row = document.createElement('div');
-            row.className = 'guess-row';
-
-            let yearArrow = ''; 
-            const gYear = parseInt(guess.wiki_page_year);
-            const tYear = parseInt(todayAnswer.wiki_page_year);
-            if (gYear < tYear) yearArrow = ' ↑'; 
-            if (gYear > tYear) yearArrow = ' ↓';
-
-            let epArrow = ''; 
-            if (guess.episodes && todayAnswer.episodes) {
-                if (guess.episodes < todayAnswer.episodes) epArrow = ' ↑'; 
-                if (guess.episodes > todayAnswer.episodes) epArrow = ' ↓';
-            }
-
-            let lenArrow = '';
-            const gLen = guess.title.length;
-            const tLen = todayAnswer.title.length;
-            if (gLen < tLen) lenArrow = ' ↑';
-            if (gLen > tLen) lenArrow = ' ↓';
-
-            let platformStatus = 'absent';
-            let platformText = guess.platforms.length > 0 ? guess.platforms.join('/') : '無平台';
-            const isExactPlatform = JSON.stringify(guess.platforms.sort()) === JSON.stringify(todayAnswer.platforms.sort());
-            
-            if (isExactPlatform) {
-                platformStatus = 'correct'; 
+                    suggBox.appendChild(div);
+                });
+                suggBox.style.display = 'block';
             } else {
-                const intersection = guess.platforms.filter(p => todayAnswer.platforms.includes(p));
-                if (intersection.length > 0) {
-                    platformStatus = 'present'; 
-                }
+                suggBox.style.display = 'none';
             }
+        });
+    }
 
-            const fields = [
-                { val: guess.title, status: guess.title === todayAnswer.title ? 'correct' : 'absent' },
-                { val: platformText, status: platformStatus },
-                { val: guess.wiki_page_year + "年" + yearArrow, status: gYear === tYear ? 'correct' : (Math.abs(gYear - tYear) <= 3 ? 'present' : 'absent') },
-                { val: (guess.episodes ? guess.episodes + "集" : "未知") + epArrow, status: guess.episodes === todayAnswer.episodes ? 'correct' : (Math.abs(guess.episodes - todayAnswer.episodes) <= 5 ? 'present' : 'absent') },
-                { val: guess.genre, status: guess.genre === todayAnswer.genre ? 'correct' : 'absent' },
-                { val: gLen + "字" + lenArrow, status: gLen === tLen ? 'correct' : 'absent' }
-            ];
-
-            fields.forEach(f => {
-                const cell = document.createElement('div');
-                cell.className = `grid-cell cell-${f.status}`;
-                cell.innerText = f.val;
-                row.appendChild(cell);
-            });
-
-            container.insertBefore(row, container.firstChild);
-        }
-
-        function updateActorHint() {
-            document.getElementById('hint-count').innerText = guessedCount;
-            const visibleCount = Math.min(guessedCount, answerActors.length);
-            const revealed = answerActors.slice(0, visibleCount);
-
-            if(revealed.length > 0) {
-                document.getElementById('hint-actors').innerHTML = `
-                    <strong>已解鎖演員：</strong> ${revealed.join(' 、 ')} 
-                    ${visibleCount < answerActors.length ? '<br><small style="color:#999">(再猜錯一次會解鎖下一個演員)</small>' : '<br><small style="color:#999">(已解鎖所有主要演員)</small>'}
-                `;
-            }
-        }
-
-        function endGame(win, msg) {
-            gameActive = false;
-            const msgBox = document.getElementById('game-message');
-            msgBox.style.display = 'block';
-            msgBox.style.backgroundColor = win ? '#e8f5e9' : '#ffebee';
-            msgBox.style.color = win ? '#2e7d32' : '#c62828';
-            msgBox.innerText = msg;
-            
-            document.getElementById('submit-btn').disabled = true;
-            document.getElementById('guess-input').disabled = true;
-
-            if (gameMode === 'endless') {
-                document.getElementById('next-btn').style.display = 'block';
-            }
-        }
-
-        document.getElementById('submit-btn').addEventListener('click', handleGuess);
-        document.getElementById('guess-input').addEventListener('keypress', (e) => {
+    function setupInputListeners() {
+        submitBtn.addEventListener('click', handleGuess);
+        input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleGuess();
         });
+        document.addEventListener('click', (e) => {
+            if (e.target !== input) suggBox.style.display = 'none';
+        });
+    }
 
-        window.onload = loadJSON;
+    function handleGuess() {
+        if (!gameActive) return;
+        const guessTitle = input.value.trim();
+        
+        const userGuess = dramaDatabase.find(d => d.title.toLowerCase() === guessTitle.toLowerCase());
+        if (!userGuess) {
+            alert("找不到這部陸劇，請選擇下拉選單內有的劇名喔！");
+            return;
+        }
+
+        guessedCount++;
+        input.value = '';
+        document.getElementById('results-table').style.display = 'block';
+
+        renderRow(userGuess);
+        updateActorHint();
+
+        if (userGuess.title === todayAnswer.title) {
+            endGame(true, `🎉 太強了！答案就是《${todayAnswer.title}》！你一共猜了 ${guessedCount} 次。`);
+        }
+    }
+
+    function renderRow(guess) {
+        const container = document.getElementById('guess-rows-container');
+        const row = document.createElement('div');
+        row.className = 'guess-row';
+
+        let yearArrow = ''; 
+        const gYear = parseInt(guess.wiki_page_year);
+        const tYear = parseInt(todayAnswer.wiki_page_year);
+        if (gYear < tYear) yearArrow = ' ↑'; 
+        if (gYear > tYear) yearArrow = ' ↓';
+
+        let epArrow = ''; 
+        if (guess.episodes && todayAnswer.episodes) {
+            if (guess.episodes < todayAnswer.episodes) epArrow = ' ↑'; 
+            if (guess.episodes > todayAnswer.episodes) epArrow = ' ↓';
+        }
+
+        let lenArrow = '';
+        const gLen = guess.title.length;
+        const tLen = todayAnswer.title.length;
+        if (gLen < tLen) lenArrow = ' ↑';
+        if (gLen > tLen) lenArrow = ' ↓';
+
+        let platformStatus = 'absent';
+        let platformText = guess.platforms.length > 0 ? guess.platforms.join('/') : '無平台';
+        const isExactPlatform = JSON.stringify(guess.platforms.sort()) === JSON.stringify(todayAnswer.platforms.sort());
+        
+        if (isExactPlatform) {
+            platformStatus = 'correct'; 
+        } else {
+            const intersection = guess.platforms.filter(p => todayAnswer.platforms.includes(p));
+            if (intersection.length > 0) {
+                platformStatus = 'present'; 
+            }
+        }
+
+        const fields = [
+            { val: guess.title, status: guess.title === todayAnswer.title ? 'correct' : 'absent' },
+            { val: platformText, status: platformStatus },
+            { val: guess.wiki_page_year + "年" + yearArrow, status: gYear === tYear ? 'correct' : (Math.abs(gYear - tYear) <= 3 ? 'present' : 'absent') },
+            { val: (guess.episodes ? guess.episodes + "集" : "未知") + epArrow, status: guess.episodes === todayAnswer.episodes ? 'correct' : (Math.abs(guess.episodes - todayAnswer.episodes) <= 5 ? 'present' : 'absent') },
+            { val: guess.genre, status: guess.genre === todayAnswer.genre ? 'correct' : 'absent' },
+            { val: gLen + "字" + lenArrow, status: gLen === tLen ? 'correct' : 'absent' }
+        ];
+
+        fields.forEach(f => {
+            const cell = document.createElement('div');
+            cell.className = `grid-cell cell-${f.status}`;
+            cell.innerText = f.val;
+            row.appendChild(cell);
+        });
+
+        container.insertBefore(row, container.firstChild);
+    }
+
+    function updateActorHint() {
+        document.getElementById('hint-count').innerText = guessedCount;
+        const visibleCount = Math.min(guessedCount, answerActors.length);
+        const revealed = answerActors.slice(0, visibleCount);
+
+        if(revealed.length > 0) {
+            document.getElementById('hint-actors').innerHTML = `
+                <strong>已解鎖演員：</strong> ${revealed.join(' 、 ')} 
+                ${visibleCount < answerActors.length ? '<br><small style="color:#999">(再猜錯一次會解鎖下一個演員)</small>' : '<br><small style="color:#999">(已解鎖所有主要演員)</small>'}
+            `;
+        }
+    }
+
+    function endGame(win, msg) {
+        gameActive = false;
+        const msgBox = document.getElementById('game-message');
+        msgBox.style.display = 'block';
+        msgBox.style.backgroundColor = win ? '#e8f5e9' : '#ffebee';
+        msgBox.style.color = win ? '#2e7d32' : '#c62828';
+        msgBox.innerText = msg;
+        
+        submitBtn.disabled = true;
+        input.disabled = true;
+
+        if (gameMode === 'endless') {
+            nextBtn.style.display = 'block';
+        }
+    }
+
+    // 啟動加載
+    loadJSON();
+
+    // 🚪 【安全出口】：只有 return 裡面曝露出的函式，外界（如 HTML 或其他檔案）才能存取
+    return {
+        startNewGame: initGame,
+        switchMode: switchMode
+    };
+})();
     </script>
 </body>
 </html>

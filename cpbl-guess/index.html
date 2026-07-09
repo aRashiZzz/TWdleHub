@@ -95,13 +95,23 @@
     </main>
 
     <script>
-        // 💡 使用 IIFE 封裝所有遊戲邏輯，防止外部透過 Console 存取內部變數作弊
         const gameModule = (function() {
             let PLAYERS = [];
             let TODAY_ANSWER = null;
             let guessHistory = [];
             let isGameOver = false;
             let currentGameMode = 'daily';
+
+            // 🧠 新增：位置與慣用手的中文轉換字典
+            const POSITION_MAP = {
+                "P": "投手", "C": "捕手", "1B": "一壘手", "2B": "二壘手",
+                "3B": "三壘手", "SS": "游擊手", "OF": "外野手", "DH": "指定打擊"
+            };
+
+            const HAND_MAP = {
+                "R/R": "右投右打", "L/L": "左投左打", "R/L": "右投左打", "L/R": "左投右打",
+                "R": "右投", "L": "左投" // 預防資料庫有單一投向手勢
+            };
 
             const searchInput = document.getElementById('search-input');
             const autocompleteList = document.getElementById('autocomplete-list');
@@ -112,7 +122,6 @@
             const nextGameBtn = document.getElementById('next-game-btn');
             const gameSubtitle = document.getElementById('game-subtitle');
 
-            // 💡 字串雜湊函式（String Hash）：解決日期累加導致相鄰兩天答案極為接近的問題
             function getHashCode(str) {
                 let hash = 0;
                 for (let i = 0; i < str.length; i++) {
@@ -122,7 +131,6 @@
                 return Math.abs(hash);
             }
 
-            // 初始化遊戲
             async function initGame() {
                 try {
                     const response = await fetch('./players.json');
@@ -141,7 +149,6 @@
                 }
             }
 
-            // 開啟新局
             function startNewGame() {
                 closeModal();
                 guessHistory = [];
@@ -164,7 +171,6 @@
                 }
             }
 
-            // 切換模式
             function switchMode(mode) {
                 if (currentGameMode === mode) return;
                 currentGameMode = mode;
@@ -185,7 +191,6 @@
                 startNewGame();
             }
 
-            // 監聽輸入框
             function setupSearchListener() {
                 searchInput.addEventListener('input', function() {
                     if (isGameOver) return;
@@ -219,7 +224,6 @@
                 });
             }
 
-            // 💡 修正：使用 closest 精準判斷點擊範圍，防止點擊選單內部空白處時導致選單異常關閉
             function setupClickOutsideListener() {
                 document.addEventListener('click', (e) => {
                     if (!e.target.closest('#search-container')) {
@@ -237,11 +241,9 @@
                 return { color: "bg-gray-800 border border-gray-700/50", emoji: "⬛" };
             }
 
-            // 處理猜測邏輯
             function handleGuess(player) {
                 if (guessHistory.some(g => g.id === player.id)) return;
 
-                // 💡 手機版排版調整：背號、年齡等欄位文字縮小為 text-xs 防止箭頭導致高度換行錯位
                 const row = document.createElement('div');
                 row.className = "grid grid-cols-6 gap-1.5 md:gap-3 w-full text-center text-xs md:text-base font-bold h-12 md:h-14 transition-all duration-300 overflow-hidden";
 
@@ -260,11 +262,17 @@
                 const currentEmojis = `${teamData.emoji}${posData.emoji}${handData.emoji}${numData.emoji}${ageData.emoji}`;
                 guessHistory.push({ id: player.id, emojis: currentEmojis });
 
+                // 🧠 關鍵優化：在渲染 HTML 時，使用字典將英文代碼轉化成中文顯示 (若找不到對照則降級顯示原文字串)
+                const chinesePosition = POSITION_MAP[player.position] || player.position;
+                const chineseHand = HAND_MAP[player.main_hand] || player.main_hand;
+
                 row.innerHTML = `
                     <div class="flex items-center justify-center bg-gray-800/80 rounded-xl text-[11px] md:text-sm px-0.5 font-bold border border-gray-700/30 truncate">${player.name}</div>
                     <div class="flex items-center justify-center ${teamData.color} rounded-xl text-[11px] md:text-sm px-0.5 shadow-md truncate">${player.team.replace("7-ELEVEn", "")}</div>
-                    <div class="flex items-center justify-center ${posData.color} rounded-xl text-xs md:text-sm shadow-md">${player.position}</div>
-                    <div class="flex items-center justify-center ${handData.color} rounded-xl text-xs md:text-sm shadow-md">${player.main_hand}</div>
+                    <!-- 🧠 顯示中文守備位置 (手機端字型縮小為 text-[10px] 防止中文字太長溢出) -->
+                    <div class="flex items-center justify-center ${posData.color} rounded-xl text-[10px] md:text-sm shadow-md">${chinesePosition}</div>
+                    <!-- 🧠 顯示中文慣用手型 -->
+                    <div class="flex items-center justify-center ${handData.color} rounded-xl text-[10px] md:text-sm shadow-md">${chineseHand}</div>
                     <div class="flex items-center justify-center ${numData.color} rounded-xl text-xs md:text-sm shadow-md">${player.number}${numArrow}</div>
                     <div class="flex items-center justify-center ${ageData.color} rounded-xl text-xs md:text-sm shadow-md">${player.age}${ageArrow}</div>
                 `;
@@ -280,7 +288,6 @@
                 }
             }
 
-            // 顯示結果
             function showResult(isWin) {
                 searchInput.disabled = true;
                 document.getElementById('modal-title').innerText = isWin ? "🎉 任務成功！" : "💥 挑戰失敗！";
@@ -295,8 +302,6 @@
                 let emojiText = `📊 CPBLdle 中職猜球員 (${modeTag}) #${todayStrTW}\n`;
                 emojiText += `次數: ${guessHistory.length}/6\n\n`;
                 
-                // 💡 修正：原本 reverse() 會導致全綠 🟩 跑到分享文最上面。
-                // 這裡移除 reverse()，使分享方塊圖符合標準 Wordle 的時間順序（由上到下，最後一列全綠）。
                 guessHistory.forEach(g => { 
                     emojiText += `${g.emojis}\n`; 
                 });
@@ -318,10 +323,8 @@
 
             function closeModal() { resultModal.classList.add('hidden'); }
 
-            // 執行初始化
             initGame();
 
-            // 💡 將需要從 HTML 行內 event (onclick) 呼叫的函式對外曝露
             return {
                 switchMode: switchMode,
                 startNewGame: startNewGame,
