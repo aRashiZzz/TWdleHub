@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台偶 Dle - 台灣偶像劇猜謎遊戲</title>
+    <title>陸劇 Dle - 中國連續劇猜謎遊戲</title>
     <style>
         :root {
             --color-correct: #66bb6a;
@@ -26,6 +26,32 @@
             -webkit-font-smoothing: antialiased;
         }
 
+        /* 🧠 新增：頂部控制列容器（包含返回大廳按鈕與模式切換） */
+        .top-bar-container {
+            width: 100%;
+            max-width: var(--max-width);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        /* 🧠 新增：返回遊戲大廳按鈕樣式 */
+        .back-lobby-btn {
+            font-size: 0.9rem;
+            color: #ff5722;
+            text-decoration: none;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: opacity 0.2s;
+        }
+        .back-lobby-btn:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+
         header {
             text-align: center;
             margin-bottom: 20px;
@@ -36,7 +62,7 @@
 
         h1 {
             margin: 0;
-            color: #e91e63;
+            color: #ff5722;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
             font-size: 2rem;
         }
@@ -47,30 +73,27 @@
             margin-top: 5px;
         }
 
-        /* 模式切換按鈕區 */
         .mode-toggle-container {
             display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
+            gap: 6px;
         }
 
         .mode-btn {
-            padding: 6px 16px;
+            padding: 6px 14px;
             background-color: #ddd;
             color: #555;
             border: none;
             border-radius: 20px;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             cursor: pointer;
             font-weight: bold;
             transition: all 0.2s ease;
         }
 
         .mode-btn.active {
-            background-color: #e91e63;
+            background-color: #ff5722;
             color: white;
-            box-shadow: 0 2px 8px rgba(233, 30, 99, 0.3);
+            box-shadow: 0 2px 8px rgba(255, 87, 34, 0.3);
         }
 
         .game-container {
@@ -83,10 +106,9 @@
             box-sizing: border-box;
         }
 
-        /* 提示區塊 */
         .hint-section {
-            background: #fff0f5;
-            border-left: 5px solid #e91e63;
+            background: #fff3e0;
+            border-left: 5px solid #ff5722;
             padding: 12px;
             margin-bottom: 20px;
             border-radius: 4px;
@@ -94,11 +116,10 @@
 
         .hint-title {
             font-weight: bold;
-            color: #e91e63;
+            color: #ff5722;
             margin-bottom: 5px;
         }
 
-        /* 輸入區塊 */
         .input-section {
             display: flex;
             gap: 10px;
@@ -117,12 +138,12 @@
         }
 
         input[type="text"]:focus {
-            border-color: #e91e63;
+            border-color: #ff5722;
         }
 
-        button {
+        button.submit-action-btn {
             padding: 12px 24px;
-            background-color: #e91e63;
+            background-color: #ff5722;
             color: white;
             border: none;
             border-radius: 6px;
@@ -132,11 +153,10 @@
             white-space: nowrap;
         }
 
-        button:hover {
-            background-color: #c2185b;
+        button.submit-action-btn:hover {
+            background-color: #e64a19;
         }
 
-        /* 下拉自動完成選單 */
         .autocomplete-suggestions {
             position: absolute;
             top: 100%;
@@ -162,11 +182,10 @@
             background-color: #f0f0f0;
         }
 
-        /* 歷史猜測表格與響應式欄位比例 */
         .grid-header, .guess-row {
             display: grid;
-            grid-template-columns: 2.2fr 1fr 1fr 1.4fr 1fr 1fr;
-            gap: 6px;
+            grid-template-columns: 2fr 1.6fr 1fr 1fr 1fr 1fr;
+            gap: 5px;
             width: 100%;
         }
 
@@ -222,114 +241,40 @@
         .next-btn {
             margin-top: 15px;
             background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            white-space: nowrap;
             display: none;
             width: 100%;
+            padding: 12px;
         }
         .next-btn:hover {
             background-color: #388e3c;
         }
 
-        /* 手機端與窄螢幕專屬優化 */
         @media (max-width: 500px) {
             body { padding: 10px; }
-            .game-container { padding: 15px 10px; }
-            .grid-header { font-size: 0.75rem; gap: 4px; }
-            .guess-row { gap: 4px; }
-            .grid-cell { font-size: 0.72rem; padding: 10px 1px; border-radius: 4px; }
+            .top-bar-container { margin-bottom: 10px; }
+            .back-lobby-btn { font-size: 0.8rem; }
+            .game-container { padding: 15px 5px; }
+            .grid-header { font-size: 0.72rem; gap: 3px; }
+            .guess-row { gap: 3px; }
+            .grid-cell { font-size: 0.7rem; padding: 10px 1px; border-radius: 4px; }
             .grid-cell:nth-child(1) { font-size: 0.7rem; } 
-            .grid-cell:nth-child(4) { font-size: 0.68rem; } 
-        }
-		/* ======================================================= */
-        /* 💡 遊戲說明與圖例提示專屬樣式                            */
-        /* ======================================================= */
-        .rules-details {
-            background-color: #1a1e29; /* 深色沉浸式背景 */
-            border: 1px solid #2a3042;
-            border-radius: 12px;
-            overflow: hidden;
-            color: #e2e8f0;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            .grid-cell:nth-child(2) { font-size: 0.65rem; } 
         }
 
-        .rules-summary {
-            padding: 12px 15px;
-            font-weight: bold;
-            font-size: 0.95rem;
-            cursor: pointer;
-            background-color: #222836;
-            color: #fff;
-            user-select: none;
-            outline: none;
-        }
-        .rules-summary:hover {
-            background-color: #2b3244;
-        }
-
-        .rules-content {
-            padding: 15px;
-            font-size: 0.88rem;
-            line-height: 1.6;
-        }
-
-        .rule-line {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 10px;
-        }
-
-        .rule-text {
-            color: #cbd5e1;
-            flex: 1;
-        }
-
-        /* 標籤樣式 */
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 0.8rem;
-            color: white;
-            text-align: center;
-            min-width: 50px;
-            margin-right: 5px;
-            white-space: nowrap;
-        }
-        .badge-correct { background-color: var(--color-correct); }
-        .badge-present { background-color: var(--color-present); color: #333; }
-        .badge-absent { background-color: var(--color-absent); }
-        .badge-arrow { background-color: #475569; }
-
-        .rules-hr {
-            border: 0;
-            border-top: 1px solid #2a3042;
-            margin: 15px 0 10px 0;
-        }
-
-        .rules-footer {
-            font-size: 0.8rem;
-            color: #94a3b8;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        /* 手機端微調 */
-        @media (max-width: 500px) {
-            .rules-summary { font-size: 0.85rem; padding: 10px; }
-            .rules-content { padding: 10px; font-size: 0.78rem; }
-            .badge { padding: 2px 8px; min-width: 42px; font-size: 0.75rem; }
-        }
-		/* ======================================================= */
-        /* 💡 遊戲說明與圖例提示專屬樣式（台偶風格、靜態平鋪版）      */
-        /* ======================================================= */
         .static-rules-container {
             width: 100%;
             max-width: var(--max-width);
-            background-color: var(--color-card); /* 維持跟主容器一樣的白色 */
+            background-color: var(--color-card);
             border: 1px solid #eef0f5;
             border-radius: 12px;
-            margin-top: 20px; /* 與上方遊戲主區塊拉開距離 */
+            margin-top: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.03);
             box-sizing: border-box;
             overflow: hidden;
@@ -339,9 +284,9 @@
             padding: 12px 15px;
             font-weight: bold;
             font-size: 0.95rem;
-            background-color: #fff0f5; /* 微微的粉色，呼應台偶感 */
-            color: #e91e63; /* 經典台偶粉紅字 */
-            border-bottom: 1px solid #ffe4ed;
+            background-color: #fff3e0;
+            color: #ff5722;
+            border-bottom: 1px solid #ffe0b2;
         }
 
         .rules-content {
@@ -357,11 +302,10 @@
         }
 
         .rule-text {
-            color: #666; /* 溫和的灰色，不刺眼 */
+            color: #666;
             flex: 1;
         }
 
-        /* 標籤樣式 */
         .badge {
             display: inline-block;
             padding: 4px 12px;
@@ -377,10 +321,10 @@
         .badge-correct { background-color: var(--color-correct); }
         .badge-present { background-color: var(--color-present); color: #fff; }
         .badge-absent { background-color: var(--color-absent); }
-        .badge-arrow { background-color: #78909c; } /* 柔和的藍灰色箭頭標籤 */
+        .badge-arrow { background-color: #78909c; }
 
         .rule-line strong {
-            color: #ffb300; /* 讓箭頭提示文字在白底上也看得清 */
+            color: #ffb300;
         }
 
         .rules-hr {
@@ -393,15 +337,7 @@
             font-size: 0.8rem;
             color: #999;
         }
-		.top-bar-container {
-            width: 100%;
-            max-width: var(--max-width);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        /* 手機端排版微調 */
+
         @media (max-width: 500px) {
             .rules-title { font-size: 0.85rem; padding: 10px 12px; }
             .rules-content { padding: 12px 10px; font-size: 0.78rem; }
@@ -411,10 +347,7 @@
 </head>
 <body>
 
-    <header>
-        <h1>🎬 台偶 Dle</h1>
-        <div class="subtitle" id="game-subtitle">每天一題，憑線索猜出經典台灣偶像劇！</div>
-        
+    <!-- 🧠 修正：將模式切換鈕上移，與「返回遊戲大廳」並列在同一個 Top Bar 中 -->
     <div class="top-bar-container">
         <a href="../" class="back-lobby-btn">
             <span>←</span> 返回遊戲大廳
@@ -425,6 +358,10 @@
             <button id="mode-endless" class="mode-btn">無限挑戰</button>
         </div>
     </div>
+
+    <header>
+        <h1>🎬 陸劇 Dle</h1>
+        <div class="subtitle" id="game-subtitle">每天一題，憑線索猜出熱門中國連續劇！</div>
     </header>
 
     <div class="game-container">
@@ -434,18 +371,18 @@
         </div>
 
         <div class="input-section">
-            <input type="text" id="guess-input" placeholder="請輸入劇名（例如：流星花園）..." autocomplete="off">
-            <button id="submit-btn">送出</button>
+            <input type="text" id="guess-input" placeholder="請輸入劇名（例如：慶餘年）..." autocomplete="off">
+            <button id="submit-btn" class="submit-action-btn">送出</button>
             <div id="suggestions" class="autocomplete-suggestions" style="display: none;"></div>
         </div>
 
         <div id="results-table" style="display: none;">
             <div class="grid-header">
                 <div>劇名</div>
-                <div>年份</div>
-                <div>首播</div>
-                <div>頻道</div>
+                <div>平台</div>
+                <div>播放年份</div>
                 <div>集數</div>
+                <div>分類</div>
                 <div>字數</div>
             </div>
             <div id="guess-rows-container"></div>
@@ -454,28 +391,29 @@
         <div id="game-message" class="message"></div>
         <button id="next-btn" class="next-btn">挑戰下一題 ➔</button>
     </div>
-	<div class="static-rules-container">
+
+    <div class="static-rules-container">
         <div class="rules-title">💡 遊戲說明與圖例提示</div>
         <div class="rules-content">
             <div class="rule-line">
                 <span class="badge badge-correct">綠色</span>
-                <span class="rule-text">：完全正確（該屬性與今日神秘偶像劇完全吻合）。</span>
+                <span class="rule-text">：完全正確（該屬性與今日神秘陸劇完全吻合）。</span>
             </div>
             <div class="rule-line">
                 <span class="badge badge-present">黃色</span>
-                <span class="rule-text">：部分正確 / 接近。在【年份】代表相差 3 年內，在【集數】代表相差 5 集內。如果頻道部分重疊也會亮黃燈。</span>
+                <span class="rule-text">：部分正確 / 接近。在【播放年份】代表相差 3 年內，在【集數】代表相差 5 集內。在【平台】代表有部分平臺重疊。</span>
             </div>
             <div class="rule-line">
                 <span class="badge badge-absent">紅色</span>
-                <span class="rule-text">：完全錯誤（該屬性與今日神秘偶像劇不符）。</span>
+                <span class="rule-text">：完全錯誤（該屬性與今日神秘陸劇不符）。</span>
             </div>
             <div class="rule-line" style="margin-top: 8px;">
                 <span class="badge badge-arrow">↑ / ↓</span>
-                <span class="rule-text">：在【年份】、【首播】、【集數】與【字數】中，會以 <strong>↑</strong>（代表答案更大/更晚）或 <strong>↓</strong>（代表答案更小/更早）提示相對關係。</span>
+                <span class="rule-text">：在【播放年份】、【集數】與【字數】中，會以 <strong>↑</strong>（代表答案更大/更長）或 <strong>↓</strong>（代表答案更小/更短）提示相對關係。</span>
             </div>
             <hr class="rules-hr">
             <div class="rules-footer">
-                📢 備註：劇集資料皆由維基百科搜尋整理。數據若有時間差或更新錯誤，還請見諒。
+                📢 備註：劇集資料皆由維基百科搜尋整理。數據若有更新錯誤，還請見諒。
             </div>
         </div>
     </div>
@@ -486,76 +424,30 @@
         let guessedCount = 0;
         let gameActive = true;
         let answerActors = []; 
-        let gameMode = 'daily'; // 'daily' 或 'endless'
+        let gameMode = 'daily'; 
 
-        // 1. 初始化：讀取本地 CSV 檔案
-        async function loadCSV() {
+        async function loadJSON() {
             try {
-                const response = await fetch('taiwan_idols_database_v3.csv?v=' + new Date().getTime());
-                const data = await response.text();
+                const response = await fetch('china_drama_2026_blue_links_only.json?v=' + new Date().getTime());
+                dramaDatabase = await response.json();
                 
-                const lines = data.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-                
-                for(let i = 1; i < lines.length; i++) {
-                    const row = parseCSVLine(lines[i]);
-                    if(row.length >= 6) {
-                        const cleanTitle = row[4].trim();
-                        
-                        if (cleanTitle.includes('、') || cleanTitle.length > 15 || cleanTitle === "") {
-                            continue; 
-                        }
-
-                        dramaDatabase.push({
-                            year: parseInt(row[0].replace('年','')) || 0, 
-                            dateStr: row[1].trim(),                        
-                            dateVal: parseDateToNumber(row[1].trim()),     
-                            channel: row[2].trim(),
-                            episodes: parseInt(row[3]) || 0,
-                            title: cleanTitle, 
-                            actors: row[5].split(/[、，, ]+/).map(a => a.trim()).filter(a => a)
-                        });
-                    }
-                }
-
                 if(dramaDatabase.length > 0) {
                     initGame();
                     initAutocomplete();
                     setupModeToggle();
                 } else {
-                    alert("資料庫內無資料，請確認 CSV 檔案格式！");
+                    alert("JSON 資料庫內無資料！");
                 }
             } catch (error) {
-                console.error("讀取 CSV 錯誤:", error);
-                document.getElementById('hint-actors').innerText = "❌ 無法讀取 CSV 檔案，請確保使用本機伺服器開啟本網頁。";
+                console.error("讀取 JSON 錯誤:", error);
+                document.getElementById('hint-actors').innerText = "❌ 無法讀取 JSON 檔案，請確保使用本地伺服器開啟本網頁。";
             }
         }
 
-        function parseCSVLine(text) {
-            let r = []; let p = ''; let q = false;
-            for (let i = 0; i < text.length; i++) {
-                let c = text[i];
-                if (c === '"') { q = !q; } 
-                else if (c === ',' && !q) { r.push(p); p = ''; } 
-                else { p += c; }
-            }
-            r.push(p);
-            return r;
-        }
-
-        function parseDateToNumber(dateStr) {
-            const match = dateStr.match(/(\d+)月(\d+)日/);
-            if (match) {
-                return parseInt(match[1]) * 100 + parseInt(match[2]);
-            }
-            return 0;
-        }
-
-        // 2. 遊戲初始化核心切換邏輯
         function initGame() {
             guessedCount = 0;
             gameActive = true;
             
-            // 清空先前的畫面紀錄
             document.getElementById('guess-rows-container').innerHTML = '';
             document.getElementById('results-table').style.display = 'none';
             document.getElementById('game-message').style.display = 'none';
@@ -566,23 +458,20 @@
             document.getElementById('hint-actors').innerText = '尚未開始猜測，請輸入劇名試試看！';
 
             if (gameMode === 'daily') {
-                document.getElementById('game-subtitle').innerText = "每天一題，憑線索猜出經典台灣偶像劇！";
+                document.getElementById('game-subtitle').innerText = "每天一題，憑線索猜出熱門中國連續劇！";
                 const today = new Date();
                 const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
                 const index = dateSeed % dramaDatabase.length;
                 todayAnswer = dramaDatabase[index];
             } else {
                 document.getElementById('game-subtitle').innerText = "⚡ 無限挑戰模式：隨機出題，答對後可挑戰下一題！";
-                // 無限模式：隨機從資料庫抽一題
                 const randomIndex = Math.floor(Math.random() * dramaDatabase.length);
                 todayAnswer = dramaDatabase[randomIndex];
             }
 
             answerActors = [...todayAnswer.actors].sort(() => Math.random() - 0.5);
-            //console.log(`[${gameMode}模式] 今日答案（調試用）：`, todayAnswer.title);
         }
 
-        // 3. 設定模式切換按鈕事件
         function setupModeToggle() {
             const btnDaily = document.getElementById('mode-daily');
             const btnEndless = document.getElementById('mode-endless');
@@ -603,11 +492,9 @@
                 initGame();
             });
 
-            // 無限挑戰「下一題」按鈕綁定
             document.getElementById('next-btn').addEventListener('click', initGame);
         }
 
-        // 4. 自動完成選單
         function initAutocomplete() {
             const input = document.getElementById('guess-input');
             const suggBox = document.getElementById('suggestions');
@@ -648,7 +535,7 @@
             
             const userGuess = dramaDatabase.find(d => d.title.toLowerCase() === guessTitle.toLowerCase());
             if (!userGuess) {
-                alert("找不到這部偶像劇，請選擇下拉選單內有的劇名喔！");
+                alert("找不到這部陸劇，請選擇下拉選單內有的劇名喔！");
                 return;
             }
 
@@ -669,18 +556,44 @@
             const row = document.createElement('div');
             row.className = 'guess-row';
 
-            let yearArrow = ''; if (guess.year < todayAnswer.year) yearArrow = ' ↑'; if (guess.year > todayAnswer.year) yearArrow = ' ↓';
-            let dateArrow = ''; if (guess.dateVal < todayAnswer.dateVal) dateArrow = ' ↑'; if (guess.dateVal > todayAnswer.dateVal) dateArrow = ' ↓';
-            let epArrow = ''; if (guess.episodes < todayAnswer.episodes) epArrow = ' ↑'; if (guess.episodes > todayAnswer.episodes) epArrow = ' ↓';
-            let lenArrow = ''; if (guess.title.length < todayAnswer.title.length) lenArrow = ' ↑'; if (guess.title.length > todayAnswer.title.length) lenArrow = ' ↓';
+            let yearArrow = ''; 
+            const gYear = parseInt(guess.wiki_page_year);
+            const tYear = parseInt(todayAnswer.wiki_page_year);
+            if (gYear < tYear) yearArrow = ' ↑'; 
+            if (gYear > tYear) yearArrow = ' ↓';
+
+            let epArrow = ''; 
+            if (guess.episodes && todayAnswer.episodes) {
+                if (guess.episodes < todayAnswer.episodes) epArrow = ' ↑'; 
+                if (guess.episodes > todayAnswer.episodes) epArrow = ' ↓';
+            }
+
+            let lenArrow = '';
+            const gLen = guess.title.length;
+            const tLen = todayAnswer.title.length;
+            if (gLen < tLen) lenArrow = ' ↑';
+            if (gLen > tLen) lenArrow = ' ↓';
+
+            let platformStatus = 'absent';
+            let platformText = guess.platforms.length > 0 ? guess.platforms.join('/') : '無平台';
+            const isExactPlatform = JSON.stringify(guess.platforms.sort()) === JSON.stringify(todayAnswer.platforms.sort());
+            
+            if (isExactPlatform) {
+                platformStatus = 'correct'; 
+            } else {
+                const intersection = guess.platforms.filter(p => todayAnswer.platforms.includes(p));
+                if (intersection.length > 0) {
+                    platformStatus = 'present'; 
+                }
+            }
 
             const fields = [
                 { val: guess.title, status: guess.title === todayAnswer.title ? 'correct' : 'absent' },
-                { val: guess.year + "年" + yearArrow, status: guess.year === todayAnswer.year ? 'correct' : (Math.abs(guess.year - todayAnswer.year) <= 3 ? 'present' : 'absent') },
-                { val: guess.dateStr + dateArrow, status: guess.dateVal === todayAnswer.dateVal ? 'correct' : 'absent' },
-                { val: guess.channel, status: guess.channel === todayAnswer.channel ? 'correct' : (todayAnswer.channel.includes(guess.channel) || guess.channel.includes(todayAnswer.channel) ? 'present' : 'absent') },
-                { val: guess.episodes + "集" + epArrow, status: guess.episodes === todayAnswer.episodes ? 'correct' : (Math.abs(guess.episodes - todayAnswer.episodes) <= 5 ? 'present' : 'absent') },
-                { val: guess.title.length + "字" + lenArrow, status: guess.title.length === todayAnswer.title.length ? 'correct' : 'absent' }
+                { val: platformText, status: platformStatus },
+                { val: guess.wiki_page_year + "年" + yearArrow, status: gYear === tYear ? 'correct' : (Math.abs(gYear - tYear) <= 3 ? 'present' : 'absent') },
+                { val: (guess.episodes ? guess.episodes + "集" : "未知") + epArrow, status: guess.episodes === todayAnswer.episodes ? 'correct' : (Math.abs(guess.episodes - todayAnswer.episodes) <= 5 ? 'present' : 'absent') },
+                { val: guess.genre, status: guess.genre === todayAnswer.genre ? 'correct' : 'absent' },
+                { val: gLen + "字" + lenArrow, status: gLen === tLen ? 'correct' : 'absent' }
             ];
 
             fields.forEach(f => {
@@ -717,7 +630,6 @@
             document.getElementById('submit-btn').disabled = true;
             document.getElementById('guess-input').disabled = true;
 
-            // 如果是無限挑戰模式，破關後顯示「下一題」按鈕
             if (gameMode === 'endless') {
                 document.getElementById('next-btn').style.display = 'block';
             }
@@ -728,7 +640,7 @@
             if (e.key === 'Enter') handleGuess();
         });
 
-        window.onload = loadCSV;
+        window.onload = loadJSON;
     </script>
 </body>
 </html>
