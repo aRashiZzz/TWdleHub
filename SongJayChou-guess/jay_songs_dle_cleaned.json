@@ -1765,7 +1765,10 @@
         "lyricist": "方文山",
         "duration": "4:13",
         "title_length": 7,
-        "feat_artists": [ "梁心頤", "楊瑞代" ],
+        "feat_artists": [
+            "梁心頤",
+            "楊瑞代"
+        ],
         "song_tags": []
     },
     {
@@ -1941,7 +1944,9 @@
         "lyricist": "方文山",
         "duration": "4:16",
         "title_length": 3,
-        "feat_artists": [ "梁心頤" ],
+        "feat_artists": [
+            "梁心頤"
+        ],
         "song_tags": []
     },
     {
