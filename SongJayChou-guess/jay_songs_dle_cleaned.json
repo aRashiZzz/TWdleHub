@@ -1305,17 +1305,6 @@
         "song_tags": []
     },
     {
-        "title": "Intro",
-        "album": "最偉大的作品",
-        "release_year": "2022",
-        "track_number": 1,
-        "lyricist": "無 ",
-        "duration": "0:29",
-        "title_length": 5,
-        "feat_artists": [],
-        "song_tags": []
-    },
-    {
         "title": "最偉大的作品",
         "album": "最偉大的作品",
         "release_year": "2022",
@@ -1710,5 +1699,140 @@
         "title_length": 2,
         "feat_artists": [],
         "song_tags": []
+    },
+    {
+        "title": "四季列車",
+        "album": "12新作",
+        "release_year": "2012",
+        "track_number": 1,
+        "lyricist": "方文山",
+        "duration": "2:40",
+        "title_length": 4,
+        "feat_artists": [],
+        "song_tags": []
+    },
+    {
+        "title": "手語",
+        "album": "12新作",
+        "release_year": "2012",
+        "track_number": 2,
+        "lyricist": "周杰倫",
+        "duration": "4:49",
+        "title_length": 2,
+        "feat_artists": [],
+        "song_tags": []
+    },
+    {
+        "title": "公公偏頭痛",
+        "album": "12新作",
+        "release_year": "2012",
+        "track_number": 3,
+        "lyricist": "方文山",
+        "duration": "3:03",
+        "title_length": 5,
+        "feat_artists": [],
+        "song_tags": []
+    },
+    {
+        "title": "明明就",
+        "album": "12新作",
+        "release_year": "2012",
+        "track_number": 4,
+        "lyricist": "方文山,
+        "duration": "4:18",
+        "title_length": 3,
+        "feat_artists": [],
+        "song_tags": []
+    },
+    {
+        "title": "傻笑",
+        "album": "12新作",
+        "release_year": "2012",
+        "track_number": 5,
+        "lyricist": "方文山",
+        "duration": "4:50",
+        "title_length": 2,
+        "feat_artists": [
+            "袁詠琳" 
+        ],
+        "song_tags": []
+    },
+    {
+        "title": "比較大的大提琴",
+        "album": "12新作",
+        "release_year": "2012",
+        "track_number": 6,
+        "lyricist": "方文山",
+        "duration": "4:13",
+        "title_length": 7,
+        "feat_artists": [ "梁心頤" ,"楊瑞代"],
+        "song_tags": []
+    },
+    {
+        "title": "愛你沒差",
+        "album": "12新作",
+        "release_year": "2012",
+        "track_number": 7,
+        "lyricist": "黃淩嘉",
+        "duration": "4:41",
+        "title_length": 4,
+        "feat_artists": [],
+        "song_tags": []
+    },
+    {
+        "title": "紅塵客棧",
+        "album": "12新作",
+        "release_year": "2012",
+        "track_number": 8,
+        "lyricist": "方文山",
+        "duration": "4:34",
+        "title_length": 4,
+        "feat_artists": [],
+        "song_tags": []
+    },
+    {
+        "title": "夢想啟動",
+        "album": "12新作",
+        "release_year": "2012",
+        "track_number": 9,
+        "lyricist": "林義傑",
+        "duration": "3:25",
+        "title_length": 4,
+        "feat_artists": [],
+        "song_tags": []
+    },
+    {
+        "title": "大笨鐘",
+        "album": "12新作",
+        "release_year": "2012",
+        "track_number": 10,
+        "lyricist": "周杰倫",
+        "duration": "4:03",
+        "title_length": 3,
+        "feat_artists": [],
+        "song_tags": []
+    },
+    {
+        "title": "哪裡都是你",
+        "album": "12新作",
+        "release_year": "2012",
+        "track_number": 11,
+        "lyricist": "周杰倫",
+        "duration": "4:39",
+        "title_length": 5,
+        "feat_artists": [],
+        "song_tags": []
+    },
+    {
+        "title": "烏克麗麗",
+        "album": "12新作",
+        "release_year": "2012",
+        "track_number": 12,
+        "lyricist": "周杰倫",
+        "duration": "2:55",
+        "title_length": 4,
+        "feat_artists": [],
+        "song_tags": []
     }
+
 ]
