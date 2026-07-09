@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JayDle - 周杰倫歌曲猜謎遊戲</title>
+    <style>
+        :root {
+            --color-correct: #4caf50;
+            --color-present: #ffc107;
+            --color-absent: #f44336;
+            --color-bg: #121214; /* 杰倫版改用酷炫深色黑膠風格 */
+            --color-card: #1e1e24;
+            --color-text: #e2e8f0;
+            --max-width: 700px;
+            --theme-color: #f43f5e; /* 浪漫音樂桃紅調 */
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--color-bg);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--color-text);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .top-bar-container {
+            width: 100%;
+            max-width: var(--max-width);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .back-lobby-btn {
+            font-size: 0.9rem;
+            color: var(--theme-color);
+            text-decoration: none;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: opacity 0.2s;
+        }
+        .back-lobby-btn:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: var(--max-width);
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--theme-color);
+            text-shadow: 0 0 10px rgba(244, 63, 94, 0.3);
+            font-size: 2.2rem;
+            font-weight: 900;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        .mode-toggle-container {
+            display: flex;
+            gap: 6px;
+        }
+
+        .mode-btn {
+            padding: 6px 14px;
+            background-color: #333;
+            color: #bbb;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn.active {
+            background-color: var(--theme-color);
+            color: white;
+            box-shadow: 0 2px 8px rgba(244, 63, 94, 0.4);
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: var(--max-width);
+            background: var(--color-card);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            box-sizing: border-box;
+            border: 1px solid #2d2d34;
+        }
+
+        /* 提示區塊 */
+        .hint-section {
+            background: #2a1b22;
+            border-left: 5px solid var(--theme-color);
+            padding: 14px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+        }
+
+        .hint-title {
+            font-weight: bold;
+            color: var(--theme-color);
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+
+        .dynamic-hint-box {
+            font-size: 0.9rem;
+            color: #e2e8f0;
+            line-height: 1.5;
+        }
+
+        /* 輸入區塊 */
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #3a3a44;
+            background-color: #151518;
+            color: white;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--theme-color);
+        }
+
+        button.submit-action-btn {
+            padding: 12px 24px;
+            background-color: var(--theme-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+
+        button.submit-action-btn:hover {
+            background-color: #e11d48;
+        }
+
+        .autocomplete-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #1e1e24;
+            border: 1px solid #3a3a44;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+
+        .suggestion-item {
+            padding: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #2d2d34;
+        }
+
+        .suggestion-item:hover {
+            background-color: #2d2d34;
+            color: var(--theme-color);
+        }
+
+        /* 🧠 調整為 6 欄網格結構：歌名與專輯配比多一點 */
+        .grid-header, .guess-row {
+            display: grid;
+            grid-template-columns: 1.8fr 1.6fr 1fr 1.4fr 1fr 1fr;
+            gap: 5px;
+            width: 100%;
+        }
+
+        .grid-header {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 8px;
+            font-size: 0.88rem;
+            color: #aaa;
+            padding: 0 2px;
+        }
+
+        .guess-row {
+            margin-bottom: 6px;
+            animation: flipIn 0.5s ease;
+        }
+
+        .grid-cell {
+            background-color: #2d2d34;
+            padding: 12px 2px;
+            text-align: center;
+            border-radius: 6px;
+            font-size: 0.92rem;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            word-break: break-all;
+            box-sizing: border-box;
+            line-height: 1.2;
+        }
+
+        .cell-correct { background-color: var(--color-correct); }
+        .cell-present { background-color: var(--color-present); color: #111; }
+        .cell-absent { background-color: var(--color-absent); }
+
+        @keyframes flipIn {
+            0% { transform: rotateX(-90deg); opacity: 0; }
+            100% { transform: rotateX(0deg); opacity: 1; }
+        }
+
+        .message {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .next-btn {
+            margin-top: 15px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            white-space: nowrap;
+            display: none;
+            width: 100%;
+            padding: 12px;
+        }
+        .next-btn:hover {
+            background-color: #388e3c;
+        }
+
+        @media (max-width: 500px) {
+            body { padding: 10px; }
+            .top-bar-container { margin-bottom: 10px; }
+            .back-lobby-btn { font-size: 0.8rem; }
+            .game-container { padding: 15px 5px; }
+            .grid-header { font-size: 0.7rem; gap: 3px; }
+            .guess-row { gap: 3px; }
+            .grid-cell { font-size: 0.68rem; padding: 10px 1px; border-radius: 4px; }
+            .grid-cell:nth-child(1) { font-size: 0.68rem; } 
+            .grid-cell:nth-child(4) { font-size: 0.65rem; } 
+        }
+
+        .static-rules-container {
+            width: 100%;
+            max-width: var(--max-width);
+            background-color: var(--color-card);
+            border: 1px solid #2d2d34;
+            border-radius: 16px;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .rules-title {
+            padding: 12px 15px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            background-color: #2a1b22;
+            color: var(--theme-color);
+            border-bottom: 1px solid #3d2430;
+        }
+
+        .rules-content {
+            padding: 15px;
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        .rule-line {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .rule-text {
+            color: #bbb;
+            flex: 1;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: white;
+            text-align: center;
+            min-width: 50px;
+            margin-right: 8px;
+            white-space: nowrap;
+        }
+        .badge-correct { background-color: var(--color-correct); }
+        .badge-present { background-color: var(--color-present); color: #111; }
+        .badge-absent { background-color: var(--color-absent); }
+        .badge-arrow { background-color: #4f5b66; }
+
+        .rule-line strong {
+            color: #ffca28;
+        }
+
+        .rules-hr {
+            border: 0;
+            border-top: 1px solid #2d2d34;
+            margin: 15px 0 10px 0;
+        }
+
+        .rules-footer {
+            font-size: 0.8rem;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar-container">
+        <a href="../" class="back-lobby-btn">
+            <span>←</span> 返回遊戲大廳
+        </a>
+        
+        <div class="mode-toggle-container">
+            <button id="mode-daily" class="mode-btn active">每日挑戰</button>
+            <button id="mode-endless" class="mode-btn">無限挑戰</button>
+        </div>
+    </div>
+
+    <header>
+        <h1>🎧 JayDle</h1>
+        <div class="subtitle" id="game-subtitle">每天一題，憑線索猜出周杰倫的經典神曲！</div>
+    </header>
+
+    <div class="game-container">
+        <div class="hint-section">
+            <div class="hint-title">🎬 智慧型動態提示 (已猜次數: <span id="hint-count">0</span>)</div>
+            <div id="hint-box" class="dynamic-hint-box">尚未開始猜測，請輸入歌名試試看！</div>
+        </div>
+
+        <div class="input-section">
+            <input type="text" id="guess-input" placeholder="請輸入周杰倫歌曲名（例如：晴天）..." autocomplete="off">
+            <button id="submit-btn" class="submit-action-btn">送出</button>
+            <div id="suggestions" class="autocomplete-suggestions" style="display: none;"></div>
+        </div>
+
+        <div id="results-table" style="display: none;">
+            <div class="grid-header">
+                <div>歌名</div>
+                <div>專輯</div>
+                <div>發行年份</div>
+                <div>作詞人</div>
+                <div>時長</div>
+                <div>字數</div>
+            </div>
+            <div id="guess-rows-container"></div>
+        </div>
+
+        <div id="game-message" class="message"></div>
+        <button id="next-btn" class="next-btn">挑戰下一題 ➔</button>
+    </div>
+
+    <div class="static-rules-container">
+        <div class="rules-title">💡 遊戲說明與圖例提示</div>
+        <div class="rules-content">
+            <div class="rule-line">
+                <span class="badge badge-correct">綠色</span>
+                <span class="rule-text">：完全正確（該屬性與今日神秘歌曲完全吻合）。</span>
+            </div>
+            <div class="rule-line">
+                <span class="badge badge-present">黃色</span>
+                <span class="rule-text">：部分正確 / 接近。在【發行年份】代表相差 2 年內。在【作詞人】代表多位作詞人中答對了部分名字。</span>
+            </div>
+            <div class="rule-line">
+                <span class="badge badge-absent">紅色</span>
+                <span class="rule-text">：完全錯誤。</span>
+            </div>
+            <div class="rule-line" style="margin-top: 8px;">
+                <span class="badge badge-arrow">↑ / ↓</span>
+                <span class="rule-text">：在【發行年份】、【時長】與【字數】中，會以 <strong>↑</strong>（代表答案更大/更長）或 <strong>↓</strong>（代表答案更小/更短）提示相對關係。</span>
+            </div>
+            <hr class="rules-hr">
+            <div class="rules-footer">
+                📢 提示功能：猜測 3 次後，若此曲有合唱、特別女聲或電影/遊戲主題曲標籤，會自動解鎖核心大提示！
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 🔒 使用 IIFE 閉包機制，將所有答案與陣列封鎖在區域作用域，控制台完全摸不到
+        const gameModule = (function() {
+            let songDatabase = [];
+            let todayAnswer = null;
+            let guessedCount = 0;
+            let gameActive = true;
+            let gameMode = 'daily';
+
+            const input = document.getElementById('guess-input');
+            const suggBox = document.getElementById('suggestions');
+            const submitBtn = document.getElementById('submit-btn');
+            const nextBtn = document.getElementById('next-btn');
+
+            function getHashCode(str) {
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    hash = (hash << 5) - hash + str.charCodeAt(i);
+                    hash |= 0; 
+                }
+                return Math.abs(hash);
+            }
+
+            // 1. 讀取你清洗過後的乾淨周杰倫 JSON 檔案
+            async function loadJSON() {
+                try {
+                    const response = await fetch('jay_songs_dle_cleaned.json?v=' + new Date().getTime());
+                    songDatabase = await response.json();
+                    
+                    if(songDatabase.length > 0) {
+                        initGame();
+                        initAutocomplete();
+                        setupModeToggle();
+                        setupInputListeners();
+                    } else {
+                        alert("資料庫內無歌曲資料！");
+                    }
+                } catch (error) {
+                    console.error("讀取 JSON 錯誤:", error);
+                    document.getElementById('hint-box').innerText = "❌ 無法讀取 JSON 題庫，請確保使用本地伺服器環境開啟本網頁。";
+                }
+            }
+
+            // 2. 遊戲初始化
+            function initGame() {
+                guessedCount = 0;
+                gameActive = true;
+                
+                document.getElementById('guess-rows-container').innerHTML = '';
+                document.getElementById('results-table').style.display = 'none';
+                document.getElementById('game-message').style.display = 'none';
+                nextBtn.style.display = 'none';
+                submitBtn.disabled = false;
+                input.disabled = false;
+                document.getElementById('hint-count').innerText = '0';
+                document.getElementById('hint-box').innerText = '尚未開始猜測，請輸入歌名試試看！';
+
+                if (gameMode === 'daily') {
+                    document.getElementById('game-subtitle').innerText = "每天一題，憑線索猜出周杰倫的經典神曲！";
+                    const today = new Date();
+                    const todayStr = today.toISOString().slice(0, 10);
+                    const seed = getHashCode(todayStr);
+                    const index = seed % songDatabase.length;
+                    todayAnswer = songDatabase[index];
+                } else {
+                    document.getElementById('game-subtitle').innerText = "⚡ 無限挑戰模式：隨機出題，答對後可挑戰下一題！";
+                    const randomIndex = Math.floor(Math.random() * songDatabase.length);
+                    todayAnswer = randomIndex >= 0 ? songDatabase[randomIndex] : null;
+                }
+            }
+
+            function switchMode(mode) {
+                if (gameMode === mode) return;
+                gameMode = mode;
+
+                const btnDaily = document.getElementById('mode-daily');
+                const btnEndless = document.getElementById('mode-endless');
+
+                if (mode === 'daily') {
+                    btnDaily.classList.add('active');
+                    btnEndless.classList.remove('active');
+                } else {
+                    btnEndless.classList.add('active');
+                    btnDaily.classList.remove('active');
+                }
+                initGame();
+            }
+
+            function setupModeToggle() {
+                document.getElementById('mode-daily').addEventListener('click', () => switchMode('daily'));
+                document.getElementById('mode-endless').addEventListener('click', () => switchMode('endless'));
+                nextBtn.addEventListener('click', initGame);
+            }
+
+            function initAutocomplete() {
+                input.addEventListener('input', () => {
+                    const val = input.value.trim().toLowerCase();
+                    suggBox.innerHTML = '';
+                    if (!val) { suggBox.style.display = 'none'; return; }
+
+                    const matches = songDatabase.filter(s => s.title.toLowerCase().includes(val)).slice(0, 5);
+                    
+                    if(matches.length > 0) {
+                        matches.forEach(m => {
+                            const div = document.createElement('div');
+                            div.className = 'suggestion-item';
+                            div.innerText = m.title;
+                            div.addEventListener('click', () => {
+                                input.value = m.title;
+                                suggBox.style.display = 'none';
+                            });
+                            suggBox.appendChild(div);
+                        });
+                        suggBox.style.display = 'block';
+                    } else {
+                        suggBox.style.display = 'none';
+                    }
+                });
+            }
+
+            function setupInputListeners() {
+                submitBtn.addEventListener('click', handleGuess);
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') handleGuess();
+                });
+                document.addEventListener('click', (e) => {
+                    if (e.target !== input) suggBox.style.display = 'none';
+                });
+            }
+
+            function handleGuess() {
+                if (!gameActive) return;
+                const guessTitle = input.value.trim();
+                
+                const userGuess = songDatabase.find(s => s.title.toLowerCase() === guessTitle.toLowerCase());
+                if (!userGuess) {
+                    alert("找不到這首歌曲，請選擇下拉選單內有的經典周董歌名喔！");
+                    return;
+                }
+
+                guessedCount++;
+                input.value = '';
+                document.getElementById('results-table').style.display = 'block';
+
+                renderRow(userGuess);
+                updateSmartHint();
+
+                if (userGuess.title === todayAnswer.title) {
+                    endGame(true, `🎉 哎呦不錯喔！答案就是《${todayAnswer.title}》！你一共猜了 ${guessedCount} 次。`);
+                }
+            }
+
+            // 🧠 將時間格式 "3:57" 轉為總秒數進行大小比較
+            function timeToSeconds(timeStr) {
+                const parts = timeStr.split(':');
+                if (parts.length !== 2) return 0;
+                return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+            }
+
+            // 3. 核心比對邏輯渲染
+            function renderRow(guess) {
+                const container = document.getElementById('guess-rows-container');
+                const row = document.createElement('div');
+                row.className = 'guess-row';
+
+                // 發行年份箭頭
+                let yearArrow = ''; 
+                const gYear = parseInt(guess.release_year);
+                const tYear = parseInt(todayAnswer.release_year);
+                if (gYear < tYear) yearArrow = ' ↑'; 
+                if (gYear > tYear) yearArrow = ' ↓';
+
+                // 時長箭頭 (轉秒比對)
+                let timeArrow = '';
+                const gSec = timeToSeconds(guess.duration);
+                const tSec = timeToSeconds(todayAnswer.duration);
+                if (gSec < tSec) timeArrow = ' ↑';
+                if (gSec > tSec) timeArrow = ' ↓';
+
+                // 字數箭頭
+                let lenArrow = '';
+                const gLen = guess.title_length;
+                const tLen = todayAnswer.title_length;
+                if (gLen < tLen) lenArrow = ' ↑';
+                if (gLen > tLen) lenArrow = ' ↓';
+
+                // 🧠 作詞人（多作詞人黃綠紅比對演算法）
+                // 先將作詞人用逗號、頓號切分成陣列
+                const gLyrics = guess.lyricist.split(/[、，, ]+/).map(l => l.trim()).filter(l => l);
+                const tLyrics = todayAnswer.lyricist.split(/[、，, ]+/).map(l => l.trim()).filter(l => l);
+                
+                let lyricStatus = 'absent';
+                const isExactLyrics = JSON.stringify(gLyrics.sort()) === JSON.stringify(tLyrics.sort());
+                
+                if (isExactLyrics) {
+                    lyricStatus = 'correct'; // 作詞人名完全一致 -> 綠色
+                } else {
+                    const intersection = gLyrics.filter(l => tLyrics.includes(l));
+                    if (intersection.length > 0) {
+                        lyricStatus = 'present'; // 部分答對 -> 黃色
+                    }
+                }
+
+                const fields = [
+                    // 1. 歌名
+                    { val: guess.title, status: guess.title === todayAnswer.title ? 'correct' : 'absent' },
+                    // 2. 專輯
+                    { val: guess.album, status: guess.album === todayAnswer.album ? 'correct' : 'absent' },
+                    // 3. 發行年份 (相差 2 年內亮黃燈)
+                    { val: guess.release_year + "年" + yearArrow, status: gYear === tYear ? 'correct' : (Math.abs(gYear - tYear) <= 2 ? 'present' : 'absent') },
+                    // 4. 作詞人
+                    { val: guess.lyricist, status: lyricStatus },
+                    // 5. 時長 (時間完全吻合綠色，其餘給箭頭)
+                    { val: guess.duration + timeArrow, status: gSec === tSec ? 'correct' : 'absent' },
+                    // 6. 字數
+                    { val: gLen + "字" + lenArrow, status: gLen === tLen ? 'correct' : 'absent' }
+                ];
+
+                fields.forEach(f => {
+                    const cell = document.createElement('div');
+                    cell.className = `grid-cell cell-${f.status}`;
+                    cell.innerText = f.val;
+                    row.appendChild(cell);
+                });
+
+                container.insertBefore(row, container.firstChild);
+            }
+
+            // 🧠 4. 猜 3 次後解鎖智慧型提示
+            function updateSmartHint() {
+                document.getElementById('hint-count').innerText = guessedCount;
+                const hintBox = document.getElementById('hint-box');
+
+                if (guessedCount < 3) {
+                    hintBox.innerHTML = `<span style="color: #888">再猜 ${3 - guessedCount} 次即可解鎖此曲的音樂標籤提示！</span>`;
+                    return;
+                }
+
+                // 猜滿 3 次，開始檢查你的清洗成果
+                let hints = [];
+
+                // 檢查是否有合唱、客串歌手
+                if (todayAnswer.feat_artists && todayAnswer.feat_artists.length > 0) {
+                    hints.push(`🎤 <b>合唱/女聲特徵</b>：此曲包含「${todayAnswer.feat_artists.join('、')}」的協同演出。`);
+                }
+
+                // 檢查是否有電影、遊戲標籤
+                if (todayAnswer.song_tags && todayAnswer.song_tags.length > 0) {
+                    hints.push(`🎬 <b>背景標籤</b>：這首歌是《${todayAnswer.song_tags.join('、')}》。`);
+                }
+
+                // 如果兩個都沒有，代表是一首標準的獨唱曲
+                if (hints.length === 0) {
+                    hintBox.innerHTML = `🎵 <b>音樂特徵</b>：這是一首周杰倫的個人標準<b>獨唱曲目</b>。`;
+                } else {
+                    hintBox.innerHTML = hints.join('<br>');
+                }
+            }
+
+            function endGame(win, msg) {
+                gameActive = false;
+                const msgBox = document.getElementById('game-message');
+                msgBox.style.display = 'block';
+                msgBox.style.backgroundColor = win ? '#e8f5e9' : '#ffebee';
+                msgBox.style.color = win ? '#2e7d32' : '#c62828';
+                msgBox.innerText = msg;
+                
+                submitBtn.disabled = true;
+                input.disabled = true;
+
+                if (gameMode === 'endless') {
+                    nextBtn.style.display = 'block';
+                }
+            }
+
+            // 自動載入
+            loadJSON();
+
+            return {
+                startNewGame: initGame,
+                switchMode: switchMode
+            };
+        })();
+    </script>
+</body>
+</html>
