@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎵 pitchDle - 聽音猜音高節奏遊戲</title>
+    <title>🎵 pitchDle - 聽音猜音高與和弦遊戲</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* 🎹 鋼琴鍵盤樣式與響應式微調 */
@@ -35,12 +35,7 @@
             font-weight: bold;
             font-size: 0.75rem;
             flex-shrink: 0;
-            transition: background 0.1s, transform 0.05s;
-        }
-
-        .white-key:active {
-            background: #e5e7eb;
-            transform: translateY(2px);
+            transition: all 0.1s;
         }
 
         .black-key {
@@ -62,12 +57,22 @@
             font-weight: bold;
             font-size: 0.65rem;
             flex-shrink: 0;
-            transition: background 0.1s, transform 0.05s;
+            transition: all 0.1s;
         }
 
-        .black-key:active {
-            background: #1f2937;
-            transform: translateY(2px);
+        /* 🎹 和弦模式下琴鍵被選中的高亮狀態 */
+        .white-key.key-selected {
+            background: #f472b6 !important;
+            color: #000 !important;
+            transform: translateY(4px);
+            box-shadow: 0 0 12px rgba(244, 114, 182, 0.8);
+        }
+
+        .black-key.key-selected {
+            background: #ec4899 !important;
+            color: #fff !important;
+            transform: translateY(4px);
+            box-shadow: 0 0 12px rgba(236, 72, 153, 0.8);
         }
 
         @media (max-width: 640px) {
@@ -79,26 +84,36 @@
 <body class="bg-gray-950 text-white min-h-screen flex flex-col items-center p-4 md:p-8">
 
     <!-- 頂部導覽列 -->
-    <div class="w-full max-w-md md:max-w-2xl flex flex-wrap justify-between items-center gap-2 mb-4">
+    <div class="w-full max-w-md md:max-w-3xl flex flex-wrap justify-between items-center gap-2 mb-4">
         <a href="./" class="text-sm text-pink-400 hover:underline transition flex items-center gap-1 w-fit">
             <span>←</span> 返回遊戲大廳
         </a>
         
-        <div class="flex items-center gap-2">
-            <!-- 每日 / 無限 模式選擇 -->
+        <div class="flex flex-wrap items-center gap-2">
+            <!-- 模式切換：單音 vs 和弦 -->
             <div class="bg-gray-900 border border-gray-800 p-1 rounded-xl flex gap-1 text-xs md:text-sm font-bold">
-                <button id="mode-daily" onclick="pitchModule.switchMode('daily')" class="px-3 py-1.5 rounded-lg bg-pink-500 text-black transition-all">
-                    📅 每日挑戰
+                <button id="type-single" onclick="pitchModule.switchGameType('single')" class="px-3 py-1.5 rounded-lg bg-pink-500 text-black transition-all">
+                    🎵 單音模式
                 </button>
-                <button id="mode-endless" onclick="pitchModule.switchMode('endless')" class="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white transition-all">
-                    ♾️ 無限遊玩
+                <button id="type-chord" onclick="pitchModule.switchGameType('chord')" class="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white transition-all">
+                    🎹 和弦挑戰
                 </button>
             </div>
 
-            <!-- 🔥 盲猜挑戰模式切換按鈕 -->
+            <!-- 每日 / 無限 模式選擇 -->
+            <div class="bg-gray-900 border border-gray-800 p-1 rounded-xl flex gap-1 text-xs md:text-sm font-bold">
+                <button id="mode-daily" onclick="pitchModule.switchMode('daily')" class="px-3 py-1.5 rounded-lg bg-gray-800 text-white transition-all">
+                    📅 每日
+                </button>
+                <button id="mode-endless" onclick="pitchModule.switchMode('endless')" class="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white transition-all">
+                    ♾️ 無限
+                </button>
+            </div>
+
+            <!-- 🔥 盲猜挑戰模式切換按鈕 (單音專用) -->
             <button id="hard-mode-btn" onclick="pitchModule.toggleHardMode()" 
-                    class="px-3 py-2 rounded-xl text-xs md:text-sm font-bold border border-red-900/50 bg-gray-900 text-gray-400 hover:text-red-400 transition-all flex items-center gap-1">
-                🔥 挑戰模式 (關)
+                    class="px-3 py-1.5 rounded-xl text-xs md:text-sm font-bold border border-red-900/50 bg-gray-900 text-gray-400 hover:text-red-400 transition-all">
+                🔥 盲猜
             </button>
         </div>
     </div>
@@ -108,7 +123,7 @@
         <h1 class="text-3xl md:text-5xl font-black tracking-wider text-pink-400 drop-shadow-[0_0_15px_rgba(244,114,182,0.2)]">
             🎵 pitchDle
         </h1>
-        <p id="game-subtitle" class="text-gray-400 text-xs md:text-sm mt-2">猜出今天的神祕鋼琴單音（每日更新）</p>
+        <p id="game-subtitle" class="text-gray-400 text-xs md:text-sm mt-2">聽音辨高低，猜出今天的神祕鋼琴單音（每日更新）</p>
     </header>
 
     <main class="w-full max-w-md md:max-w-3xl flex flex-col items-center gap-6">
@@ -119,27 +134,39 @@
                 🔥 挑戰模式：隱藏高低提示
             </div>
 
-            <div class="text-xs text-pink-400 font-bold tracking-widest uppercase">Target Pitch (Range: C2 - B5)</div>
+            <div id="target-label" class="text-xs text-pink-400 font-bold tracking-widest uppercase">Target Pitch (C2 - B5)</div>
             
             <button id="play-target-btn" onclick="pitchModule.playTargetAudio()" 
                     class="bg-pink-500 hover:bg-pink-600 text-black font-black text-lg md:text-xl px-8 py-4 rounded-2xl transition-all shadow-[0_0_20px_rgba(244,114,182,0.3)] active:scale-95 flex items-center gap-3">
-                <span class="text-2xl">🔊</span> 點擊聽神祕單音
+                <span class="text-2xl">🔊</span> <span id="play-btn-text">點擊聽神祕單音</span>
             </button>
             
-            <p class="text-xs text-gray-400">可無限次點擊重聽。下方可左右滑動琴鍵選擇音高作答！</p>
+            <p id="play-hint-text" class="text-xs text-gray-400">可無限次點擊重聽。下方可點擊琴鍵作答！</p>
         </div>
 
-        <!-- 鋼琴鍵盤區（含音域快速跳轉頁籤） -->
+        <!-- 鋼琴鍵盤區 -->
         <div class="w-full bg-gray-900/40 border border-gray-800/80 rounded-2xl p-4 shadow-xl">
-            <div class="flex justify-between items-center mb-3">
-                <div class="text-xs font-bold text-gray-400">👇 快速切換音域視角：</div>
+            <div class="flex flex-wrap justify-between items-center mb-3 gap-2">
+                <div id="piano-instruction" class="text-xs font-bold text-gray-400">👇 點擊琴鍵作答：</div>
+                
                 <div class="flex gap-1 text-xs font-bold">
-                    <button onclick="pitchModule.scrollToOctave(2)" class="px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700">低音區 (C2-B3)</button>
-                    <button onclick="pitchModule.scrollToOctave(4)" class="px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700">高音區 (C4-B5)</button>
+                    <button onclick="pitchModule.scrollToOctave(2)" class="px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700">低音區</button>
+                    <button onclick="pitchModule.scrollToOctave(4)" class="px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700">高音區</button>
                 </div>
             </div>
 
             <div id="piano-keyboard" class="piano-container"></div>
+
+            <!-- 和弦模式專用：操作按鈕區 -->
+            <div id="chord-controls" class="hidden flex justify-between items-center mt-4 pt-3 border-t border-gray-800">
+                <button onclick="pitchModule.clearSelectedKeys()" class="text-xs text-gray-400 hover:text-white px-3 py-2 rounded-xl bg-gray-800/60 border border-gray-700">
+                    🧹 清除選擇 (<span id="selected-count">0</span>)
+                </button>
+                
+                <button onclick="pitchModule.submitChordGuess()" class="bg-pink-500 hover:bg-pink-600 text-black font-black text-sm px-6 py-2.5 rounded-xl transition shadow-lg active:scale-95">
+                    🚀 提交和弦答案
+                </button>
+            </div>
         </div>
 
         <!-- 歷史猜測清單 -->
@@ -151,23 +178,35 @@
         <!-- 遊戲說明面板 -->
         <div class="w-full bg-gray-900/60 border border-gray-800/80 rounded-2xl p-4 text-xs text-gray-400 flex flex-col gap-2 shadow-md">
             <h3 class="font-bold text-gray-200 border-b border-gray-800 pb-2">💡 遊戲說明與圖例提示</h3>
-            <div class="flex items-center gap-2">
-                <span class="bg-green-600 text-white font-bold px-2 py-0.5 rounded">綠色</span>
-                <span>：完全正確（該音高與目標單音完全吻合）。</span>
+            <div id="guide-single">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="bg-green-600 text-white font-bold px-2 py-0.5 rounded">綠色</span>
+                    <span>：完全正確（該音高與目標單音完全吻合）。</span>
+                </div>
+                <div id="hint-desc-normal" class="flex flex-col gap-1">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-yellow-500 text-black font-bold px-2 py-0.5 rounded">黃色 ↑</span>
+                        <span>：你按的音太低了！目標音高比這個音更高。</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="bg-blue-600 text-white font-bold px-2 py-0.5 rounded">藍色 ↓</span>
+                        <span>：你按的音太高了！目標音高比這個音更低。</span>
+                    </div>
+                </div>
             </div>
-            <div id="hint-desc-normal" class="flex flex-col gap-2">
+            <div id="guide-chord" class="hidden flex flex-col gap-1">
                 <div class="flex items-center gap-2">
-                    <span class="bg-yellow-500 text-black font-bold px-2 py-0.5 rounded">黃色 ↑</span>
-                    <span>：你按的音太低了！目標神祕音高比這個音更高。</span>
+                    <span class="bg-green-600 text-white font-bold px-2 py-0.5 rounded">綠色 🟩</span>
+                    <span>：完全精準！包含在目標和弦中，且音高八度完全正確。</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="bg-blue-600 text-white font-bold px-2 py-0.5 rounded">藍色 ↓</span>
-                    <span>：你按的音太高了！目標神祕音高比這個音更低。</span>
+                    <span class="bg-yellow-500 text-black font-bold px-2 py-0.5 rounded">黃色 🟨</span>
+                    <span>：音名正確，但八度位置錯誤（例如選了 C3，但答案是 C4）。</span>
                 </div>
-            </div>
-            <div id="hint-desc-hard" class="hidden flex items-center gap-2 text-red-400 font-bold">
-                <span class="bg-red-800 text-white font-bold px-2 py-0.5 rounded">灰色 ❌</span>
-                <span>：挑戰模式開啟中！猜錯僅顯示不正確，不會提供任何音高方向指示。</span>
+                <div class="flex items-center gap-2">
+                    <span class="bg-gray-800 text-gray-400 border border-gray-700 font-bold px-2 py-0.5 rounded">灰色 ⬛</span>
+                    <span>：錯誤！目標和弦中完全沒有這個音名。</span>
+                </div>
             </div>
         </div>
 
@@ -195,7 +234,7 @@
 
     <script>
         const pitchModule = (function() {
-            // 🎹 4 個八度音符設定 ($C2$ 到 $B5$，共 48 個半音鍵)
+            // 🎹 音符基礎資料 (C2-B5)
             const octaves = [2, 3, 4, 5];
             const baseNotes = [
                 { name: "C", freq: 65.41, type: "white" },
@@ -218,6 +257,7 @@
                 baseNotes.forEach(b => {
                     NOTES.push({
                         name: `${b.name}${oct}`,
+                        pitchName: b.name,
                         freq: Number((b.freq * multiplier).toFixed(2)),
                         type: b.type,
                         octave: oct
@@ -225,12 +265,33 @@
                 });
             });
 
-            let targetNote = null;
-            let targetIndex = -1;
-            let guessHistory = [];
-            let isGameOver = false;
+            // 🎼 預設和弦資料庫 (大三、小三和弦)
+            const CHORD_DATABASE = [
+                { name: "C Major", notes: ["C4", "E4", "G4"] },
+                { name: "C Minor", notes: ["C4", "D#4", "G4"] },
+                { name: "D Major", notes: ["D4", "F#4", "A4"] },
+                { name: "D Minor", notes: ["D4", "F4", "A4"] },
+                { name: "E Major", notes: ["E4", "G#4", "B4"] },
+                { name: "E Minor", notes: ["E4", "G4", "B4"] },
+                { name: "F Major", notes: ["F4", "A4", "C5"] },
+                { name: "F Minor", notes: ["F4", "G#4", "C5"] },
+                { name: "G Major", notes: ["G4", "B4", "D5"] },
+                { name: "G Minor", notes: ["G4", "A#4", "D5"] },
+                { name: "A Major", notes: ["A3", "C#4", "E4"] },
+                { name: "A Minor", notes: ["A3", "C4", "E4"] }
+            ];
+
+            let gameType = 'single'; // 'single' 或 'chord'
             let currentGameMode = 'daily';
             let isHardMode = false;
+            let isGameOver = false;
+            let guessHistory = [];
+
+            let targetSingleIndex = -1;
+            let targetSingleNote = null;
+            let targetChord = null;
+
+            let selectedKeyIndices = new Set(); // 和弦模式暫存按下的琴鍵
             let audioCtx = null;
 
             function getAudioContext() {
@@ -243,22 +304,25 @@
                 return audioCtx;
             }
 
-            function playPitch(freq) {
+            // 🎵 播放多音和弦
+            function playChordAudio(freqArray) {
                 const ctx = getAudioContext();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
+                freqArray.forEach(freq => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
 
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime);
 
-                gain.gain.setValueAtTime(0.8, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.5);
+                    gain.gain.setValueAtTime(0.5, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.8);
 
-                osc.connect(gain);
-                gain.connect(ctx.destination);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
 
-                osc.start();
-                osc.stop(ctx.currentTime + 1.5);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 1.8);
+                });
             }
 
             function getHashCode(str) {
@@ -281,9 +345,26 @@
                     keyBtn.id = `key-${note.name}`;
 
                     keyBtn.addEventListener('click', () => {
-                        playPitch(note.freq);
-                        if (!isGameOver) {
-                            handleGuess(index);
+                        if (gameType === 'single') {
+                            playChordAudio([note.freq]);
+                            if (!isGameOver) handleSingleGuess(index);
+                        } else {
+                            // 和弦模式：切換被按下的狀態
+                            if (selectedKeyIndices.has(index)) {
+                                selectedKeyIndices.delete(index);
+                                keyBtn.classList.remove('key-selected');
+                            } else {
+                                selectedKeyIndices.add(index);
+                                keyBtn.classList.add('key-selected');
+                            }
+                            
+                            document.getElementById('selected-count').innerText = selectedKeyIndices.size;
+
+                            // 每按一個新琴鍵，一次播放目前選中的所有音
+                            if (selectedKeyIndices.size > 0) {
+                                const selectedFreqs = Array.from(selectedKeyIndices).map(i => NOTES[i].freq);
+                                playChordAudio(selectedFreqs);
+                            }
                         }
                     });
 
@@ -291,7 +372,12 @@
                 });
             }
 
-            // 滾動導覽至指定八度
+            function clearSelectedKeys() {
+                selectedKeyIndices.clear();
+                document.querySelectorAll('.key-selected').forEach(el => el.classList.remove('key-selected'));
+                document.getElementById('selected-count').innerText = "0";
+            }
+
             function scrollToOctave(oct) {
                 const targetKey = document.getElementById(`key-C${oct}`);
                 if (targetKey) {
@@ -303,63 +389,53 @@
                 closeModal();
                 guessHistory = [];
                 isGameOver = false;
+                clearSelectedKeys();
                 document.getElementById('history-container').innerHTML = '';
 
-                if (currentGameMode === 'daily') {
-                    const todayStr = new Date().toISOString().slice(0, 10);
-                    const seed = getHashCode("pitch_v2_" + todayStr);
-                    targetIndex = seed % NOTES.length;
-                    document.getElementById('game-subtitle').innerText = "猜出今天的神祕鋼琴單音 (範圍 C2 - B5)";
+                const todayStr = new Date().toISOString().slice(0, 10);
+
+                if (gameType === 'single') {
+                    if (currentGameMode === 'daily') {
+                        const seed = getHashCode("single_v1_" + todayStr);
+                        targetSingleIndex = seed % NOTES.length;
+                        document.getElementById('game-subtitle').innerText = "猜出今天的神祕鋼琴單音（每日更新）";
+                    } else {
+                        targetSingleIndex = Math.floor(Math.random() * NOTES.length);
+                        document.getElementById('game-subtitle').innerText = "無限單音模式：神祕單音已重置！";
+                    }
+                    targetSingleNote = NOTES[targetSingleIndex];
+                    console.log("今日單音答案：", targetSingleNote.name);
                 } else {
-                    targetIndex = Math.floor(Math.random() * NOTES.length);
-                    document.getElementById('game-subtitle').innerText = "無限遊玩模式：神祕單音已隨機重置！";
+                    if (currentGameMode === 'daily') {
+                        const seed = getHashCode("chord_v1_" + todayStr);
+                        targetChord = CHORD_DATABASE[seed % CHORD_DATABASE.length];
+                        document.getElementById('game-subtitle').innerText = "聽出今天的神祕鋼琴和弦（每日更新）";
+                    } else {
+                        targetChord = CHORD_DATABASE[Math.floor(Math.random() * CHORD_DATABASE.length)];
+                        document.getElementById('game-subtitle').innerText = "無限和弦模式：神祕和弦已重置！";
+                    }
+                    console.log("今日和弦答案：", targetChord.name, targetChord.notes);
                 }
 
-                targetNote = NOTES[targetIndex];
-                console.log("今日神祕單音（防作弊隱蔽）：", targetNote.name);
-
-                // 預設將鍵盤視野滾動到中央 C4 區間
                 setTimeout(() => scrollToOctave(3), 300);
             }
 
             function playTargetAudio() {
-                if (targetNote) {
-                    playPitch(targetNote.freq);
+                if (gameType === 'single' && targetSingleNote) {
+                    playChordAudio([targetSingleNote.freq]);
+                } else if (gameType === 'chord' && targetChord) {
+                    const freqs = targetChord.notes.map(noteName => NOTES.find(n => n.name === noteName).freq);
+                    playChordAudio(freqs);
                 }
             }
 
-            function toggleHardMode() {
-                isHardMode = !isHardMode;
-                const hardBtn = document.getElementById('hard-mode-btn');
-                const hardBadge = document.getElementById('hard-badge');
-                const normalDesc = document.getElementById('hint-desc-normal');
-                const hardDesc = document.getElementById('hint-desc-hard');
-
-                if (isHardMode) {
-                    hardBtn.className = "px-3 py-2 rounded-xl text-xs md:text-sm font-bold border border-red-500 bg-red-600 text-white transition-all shadow-[0_0_12px_rgba(239,68,68,0.5)] flex items-center gap-1 active:scale-95";
-                    hardBtn.innerText = "🔥 挑戰模式 (開)";
-                    hardBadge.classList.remove('hidden');
-                    normalDesc.classList.add('hidden');
-                    hardDesc.classList.remove('hidden');
-                } else {
-                    hardBtn.className = "px-3 py-2 rounded-xl text-xs md:text-sm font-bold border border-red-900/50 bg-gray-900 text-gray-400 hover:text-red-400 transition-all flex items-center gap-1";
-                    hardBtn.innerText = "🔥 挑戰模式 (關)";
-                    hardBadge.classList.add('hidden');
-                    normalDesc.classList.remove('hidden');
-                    hardDesc.classList.add('hidden');
-                }
-                startNewGame();
-            }
-
-            function handleGuess(guessIdx) {
-                if (isGameOver) return;
+            function handleSingleGuess(guessIdx) {
                 const guessNote = NOTES[guessIdx];
-
                 let colorClass = "bg-green-600 text-white";
                 let hintText = "正確 🟩";
                 let emoji = "🟩";
 
-                if (guessIdx === targetIndex) {
+                if (guessIdx === targetSingleIndex) {
                     colorClass = "bg-green-600 text-white";
                     hintText = "正確 🟩";
                     emoji = "🟩";
@@ -369,7 +445,7 @@
                         hintText = "不正確 ❌";
                         emoji = "⬛";
                     } else {
-                        if (guessIdx < targetIndex) {
+                        if (guessIdx < targetSingleIndex) {
                             colorClass = "bg-yellow-500 text-black";
                             hintText = "太低了 ↑ (目標更高)";
                             emoji = "🟨";
@@ -385,13 +461,79 @@
 
                 const row = document.createElement('div');
                 row.className = `flex justify-between items-center p-3 rounded-xl font-bold ${colorClass} transition-all duration-300 shadow-md`;
+                row.innerHTML = `<span class="text-base">${guessNote.name}</span><span class="text-sm">${hintText}</span>`;
+                document.getElementById('history-container').prepend(row);
+
+                if (guessIdx === targetSingleIndex) {
+                    isGameOver = true;
+                    showResult(true);
+                } else if (guessHistory.length >= 6) {
+                    isGameOver = true;
+                    showResult(false);
+                }
+            }
+
+            // 🎹 提交和弦答案比對邏輯
+            function submitChordGuess() {
+                if (isGameOver) return;
+                if (selectedKeyIndices.size === 0) {
+                    alert("請先在鋼琴上點選至少一個琴鍵組成和弦！");
+                    return;
+                }
+
+                const guessNotes = Array.from(selectedKeyIndices).map(i => NOTES[i]);
+                const answerNotes = targetChord.notes; // 例: ["C4", "E4", "G4"]
+                const answerPitchNames = answerNotes.map(n => n.replace(/[0-9]/g, '')); // 例: ["C", "E", "G"]
+
+                let allExactMatch = true;
+                if (guessNotes.length !== answerNotes.length) allExactMatch = false;
+
+                let rowHtml = `<div class="flex flex-wrap gap-2 items-center">`;
+                let rowEmoji = "";
+
+                guessNotes.forEach(gn => {
+                    let noteBadgeClass = "";
+                    let emojiSymbol = "⬛";
+
+                    if (answerNotes.includes(gn.name)) {
+                        // 綠色：完全精準
+                        noteBadgeClass = "bg-green-600 text-white";
+                        emojiSymbol = "🟩";
+                    } else if (answerPitchNames.includes(gn.pitchName)) {
+                        // 黃色：音名對但八度錯
+                        noteBadgeClass = "bg-yellow-500 text-black";
+                        emojiSymbol = "🟨";
+                        allExactMatch = false;
+                    } else {
+                        // 灰色：完全錯誤
+                        noteBadgeClass = "bg-gray-800 text-gray-400 border border-gray-700";
+                        emojiSymbol = "⬛";
+                        allExactMatch = false;
+                    }
+
+                    rowEmoji += emojiSymbol;
+                    rowHtml += `<span class="px-2.5 py-1 rounded-lg font-bold text-xs ${noteBadgeClass}">${gn.name}</span>`;
+                });
+
+                rowHtml += `</div>`;
+
+                guessHistory.push({
+                    chordName: guessNotes.map(n => n.name).join(' - '),
+                    emoji: rowEmoji,
+                    isWin: allExactMatch
+                });
+
+                const row = document.createElement('div');
+                row.className = "flex justify-between items-center p-3 rounded-xl bg-gray-900 border border-gray-800 shadow-md";
                 row.innerHTML = `
-                    <span class="text-base">${guessNote.name}</span>
-                    <span class="text-sm">${hintText}</span>
+                    ${rowHtml}
+                    <span class="text-xs font-bold text-gray-400">${allExactMatch ? '🎉 完全命中' : '比對結果'}</span>
                 `;
                 document.getElementById('history-container').prepend(row);
 
-                if (guessIdx === targetIndex) {
+                clearSelectedKeys();
+
+                if (allExactMatch) {
                     isGameOver = true;
                     showResult(true);
                 } else if (guessHistory.length >= 6) {
@@ -402,25 +544,31 @@
 
             function showResult(isWin) {
                 const title = document.getElementById('modal-title');
-                title.innerText = isWin ? (isHardMode ? "🔥 絕對音感大師！" : "🎉 完美的音感！") : "💥 挑戰失敗！";
+                title.innerText = isWin ? "🎉 任務成功！" : "💥 挑戰失敗！";
                 title.className = isWin ? "text-3xl font-black text-pink-400" : "text-3xl font-black text-red-500";
 
+                const ansName = gameType === 'single' ? targetSingleNote.name : `${targetChord.name} (${targetChord.notes.join('-')})`;
                 document.getElementById('modal-desc').innerText = isWin
-                    ? `你花了 ${guessHistory.length} 次猜出正確音高：${targetNote.name}！`
-                    : `可惜了！今天的正確音高是：${targetNote.name}`;
+                    ? `你花了 ${guessHistory.length} 次猜出正確答案：${ansName}！`
+                    : `可惜了！今天的正確答案是：${ansName}`;
 
                 const todayStrTW = new Date().toLocaleDateString('zh-TW');
+                const typeTag = gameType === 'single' ? '單音' : '和弦';
                 const modeTag = currentGameMode === 'daily' ? '每日挑戰' : '無限遊玩';
-                const hardTag = isHardMode ? ' 🔥盲猜挑戰' : '';
 
-                let emojiText = `📊 pitchDle 聽音猜音高 (${modeTag}${hardTag}) #${todayStrTW}\n`;
-                emojiText += `音域: C2 - B5 (48音) | 次數: ${guessHistory.length}/6\n\n`;
+                let emojiText = `📊 pitchDle 聽音猜音高 (${typeTag} - ${modeTag}) #${todayStrTW}\n`;
+                emojiText += `次數: ${guessHistory.length}/6\n\n`;
 
-                guessHistory.forEach(g => { emojiText += `${g.emoji} ${g.note}\n`; });
-                emojiText += `\n點此挑戰音感 👉 ${window.location.href}`;
+                guessHistory.forEach(g => {
+                    if (gameType === 'single') {
+                        emojiText += `${g.emoji} ${g.note}\n`;
+                    } else {
+                        emojiText += `${g.emoji} (${g.chordName})\n`;
+                    }
+                });
+                emojiText += `\n點此挑戰聽力 👉 ${window.location.href}`;
 
-                const emojiPreview = document.getElementById('emoji-preview');
-                emojiPreview.innerText = emojiText.replace(/\n/g, '\r\n');
+                document.getElementById('emoji-preview').innerText = emojiText.replace(/\n/g, '\r\n');
 
                 const shareBtn = document.getElementById('share-btn');
                 shareBtn.onclick = function() {
@@ -433,6 +581,47 @@
                 setTimeout(() => {
                     document.getElementById('result-modal').classList.remove('hidden');
                 }, 600);
+            }
+
+            function switchGameType(type) {
+                if (gameType === type) return;
+                gameType = type;
+
+                const singleBtn = document.getElementById('type-single');
+                const chordBtn = document.getElementById('type-chord');
+                const chordControls = document.getElementById('chord-controls');
+                const playBtnText = document.getElementById('play-btn-text');
+                const playHintText = document.getElementById('play-hint-text');
+                const pianoInstruction = document.getElementById('piano-instruction');
+                const hardBtn = document.getElementById('hard-mode-btn');
+                const guideSingle = document.getElementById('guide-single');
+                const guideChord = document.getElementById('guide-chord');
+
+                if (type === 'single') {
+                    singleBtn.className = "px-3 py-1.5 rounded-lg bg-pink-500 text-black transition-all";
+                    chordBtn.className = "px-3 py-1.5 rounded-lg text-gray-400 hover:text-white transition-all";
+                    chordControls.classList.add('hidden');
+                    hardBtn.classList.remove('hidden');
+                    guideSingle.classList.remove('hidden');
+                    guideChord.classList.add('hidden');
+
+                    playBtnText.innerText = "點擊聽神祕單音";
+                    playHintText.innerText = "可無限次點擊重聽。下方可點擊琴鍵作答！";
+                    pianoInstruction.innerText = "👇 點擊琴鍵作答：";
+                } else {
+                    chordBtn.className = "px-3 py-1.5 rounded-lg bg-pink-500 text-black transition-all";
+                    singleBtn.className = "px-3 py-1.5 rounded-lg text-gray-400 hover:text-white transition-all";
+                    chordControls.classList.remove('hidden');
+                    hardBtn.classList.add('hidden');
+                    guideSingle.classList.add('hidden');
+                    guideChord.classList.remove('hidden');
+
+                    playBtnText.innerText = "點擊聽神祕和弦";
+                    playHintText.innerText = "點擊琴鍵可組合和弦，再次點擊可取消選取。";
+                    pianoInstruction.innerText = "👇 點擊琴鍵組合和弦：";
+                }
+
+                startNewGame();
             }
 
             function switchMode(mode) {
@@ -455,6 +644,21 @@
                 startNewGame();
             }
 
+            function toggleHardMode() {
+                isHardMode = !isHardMode;
+                const hardBtn = document.getElementById('hard-mode-btn');
+                const hardBadge = document.getElementById('hard-badge');
+
+                if (isHardMode) {
+                    hardBtn.className = "px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold border border-red-500 bg-red-600 text-white transition-all shadow-[0_0_12px_rgba(239,68,68,0.5)]";
+                    hardBadge.classList.remove('hidden');
+                } else {
+                    hardBtn.className = "px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold border border-red-900/50 bg-gray-900 text-gray-400 hover:text-red-400 transition-all";
+                    hardBadge.classList.add('hidden');
+                }
+                startNewGame();
+            }
+
             function closeModal() {
                 document.getElementById('result-modal').classList.add('hidden');
             }
@@ -465,9 +669,12 @@
 
             return {
                 playTargetAudio: playTargetAudio,
+                switchGameType: switchGameType,
+                switchMode: switchMode,
                 toggleHardMode: toggleHardMode,
                 scrollToOctave: scrollToOctave,
-                switchMode: switchMode,
+                clearSelectedKeys: clearSelectedKeys,
+                submitChordGuess: submitChordGuess,
                 startNewGame: startNewGame,
                 closeModal: closeModal
             };
