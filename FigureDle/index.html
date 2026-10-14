@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏛️ Historydle - 歷史名人畫像猜謎</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        input[type="text"] { font-size: 16px !important; }
+
+        /* ======================================================= */
+        /* 🔍 下拉自動完成選單：確保選單文字完全顯現，不變點點點   */
+        /* ======================================================= */
+        .suggestion-item {
+            padding: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(55, 65, 81, 0.3);
+            white-space: normal !important;
+            text-overflow: clip !important;
+            overflow: visible !important;
+        }
+        .suggestion-item:hover {
+            background-color: #1f2937;
+        }
+
+        /* ======================================================= */
+        /* 🎨 歷史猜測表格容器優化：6 欄黃金比例                   */
+        /* ======================================================= */
+        .grid-scroll-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 5px;
+        }
+
+        /* 6 欄比例：人物(1.3)、領域(1.1)、國家/洲別(1.2)、出生年(1fr)、活躍時代(1.4)、身分頭銜(2.0) */
+        .grid-header, .guess-row {
+            display: grid;
+            grid-template-columns: 1.3fr 1.1fr 1.2fr 1fr 1.4fr 2fr;
+            gap: 8px;
+            width: 100%;
+            min-width: 100%;
+        }
+
+        .grid-header {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            color: #94a3b8;
+            padding: 0 2px;
+        }
+
+        .guess-row {
+            margin-bottom: 6px;
+            animation: flipIn 0.5s ease;
+        }
+
+        .grid-cell-lol {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-weight: bold;
+            box-sizing: border-box;
+            line-height: 1.35;
+            text-align: center;
+            padding: 8px 8px;
+            word-break: break-word;
+            min-height: 54px;
+        }
+
+        @keyframes flipIn {
+            0% { transform: rotateX(-90deg); opacity: 0; }
+            100% { transform: rotateX(0deg); opacity: 1; }
+        }
+
+        /* 📱 手機端與窄螢幕專屬防變形臨界值設定 */
+        @media (max-width: 680px) {
+            .grid-header, .guess-row {
+                min-width: 600px;
+                gap: 5px;
+            }
+            .grid-header > div, .grid-cell-lol {
+                font-size: 0.75rem !important;
+                padding: 5px 4px;
+                min-height: 48px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen flex flex-col items-center p-4 md:p-8">
+
+    <!-- 頂部導覽與模式切換 -->
+    <div class="w-full max-w-md md:max-w-4xl flex justify-between items-center mb-4">
+        <a href="../" class="text-sm text-amber-400 hover:underline transition flex items-center gap-1 w-fit">
+            <span>←</span> 返回遊戲大廳
+        </a>
+        
+        <div class="bg-gray-900 border border-gray-800 p-1 rounded-xl flex gap-1 text-xs md:text-sm font-bold">
+            <button id="mode-daily" onclick="gameModule.switchMode('daily')" class="px-3 py-1.5 rounded-lg bg-amber-500 text-black transition-all">
+                📅 每日挑戰
+            </button>
+            <button id="mode-endless" onclick="gameModule.switchMode('endless')" class="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white transition-all">
+                ♾️ 無限遊玩
+            </button>
+        </div>
+    </div>
+
+    <!-- 遊戲標題 -->
+    <header class="text-center mb-5 md:mb-8">
+        <h1 class="text-3xl md:text-5xl font-black tracking-wider text-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.25)]">
+            🏛️ Historydle
+        </h1>
+        <p id="game-subtitle" class="text-gray-400 text-xs md:text-sm mt-2">凝視歷史名人的高清肖像，推理出畫中人物的真實身分（每日更新）</p>
+    </header>
+
+    <main class="w-full max-w-md md:max-w-4xl flex flex-col items-center gap-4 md:gap-6">
+        
+        <!-- 🖼️ 核心題目區：左方高清畫像 + 右方漸進式事蹟線索 -->
+        <div class="w-full bg-gray-900/70 border border-amber-900/40 rounded-2xl p-4 md:p-6 flex flex-col md:flex-row items-center md:items-stretch gap-4 md:gap-6 shadow-xl">
+            
+            <!-- 高清畫像展示框 -->
+            <div class="relative w-48 h-60 md:w-56 md:h-68 flex-shrink-0 rounded-xl overflow-hidden bg-gray-950 border-2 border-amber-500/40 shadow-[0_0_25px_rgba(0,0,0,0.6)] group cursor-pointer"
+                 onclick="gameModule.openImageLightbox()" title="點擊放大檢視高清畫像">
+                
+                <!-- 載入中動畫 -->
+                <div id="portrait-loading" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-950 z-10 text-gray-400 text-xs gap-2">
+                    <div class="w-7 h-7 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+                    <span>載入高清畫像中...</span>
+                </div>
+
+                <!-- 畫像圖片本體 -->
+                <img id="portrait-img" src="" alt="神秘歷史人物畫像"
+                     class="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
+                     onload="document.getElementById('portrait-loading').classList.add('hidden')"
+                     onerror="gameModule.handleImageError()">
+
+                <!-- 放大鏡提示浮層 -->
+                <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 text-center">
+                    <span class="text-[11px] text-amber-300 font-medium flex items-center justify-center gap-1">
+                        🔍 點擊放大檢視細節
+                    </span>
+                </div>
+            </div>
+
+            <!-- 漸進式事蹟與代表作線索面板 -->
+            <div class="flex-1 w-full bg-amber-950/15 border border-amber-900/30 rounded-xl p-4 flex flex-col justify-between gap-3">
+                <div>
+                    <div class="text-xs md:text-sm font-black tracking-wider text-amber-400 flex flex-wrap justify-between items-center gap-2 border-b border-amber-900/30 pb-2">
+                        <span>📜 關鍵事蹟與代表作線索 (<span id="hint-count">0</span>/<span id="hint-total">4</span>)</span>
+                        <span id="hint-status-text" class="text-gray-400 font-normal text-xs">📢 每猜錯一次或點擊跳過，將解鎖一條新事蹟</span>
+                    </div>
+
+                    <div id="hero-hint-display" class="text-sm md:text-base text-gray-200 mt-3 space-y-2 leading-relaxed">
+                        <p class="text-gray-400 text-sm">👀 請先仔細觀察左側畫像的服飾、畫風或神態！若認不出是誰，可直接輸入任何一位歷史人物來比對「領域、洲別、年代」，或按下下方「跳過」直接換取第一條線索。</p>
+                    </div>
+                </div>
+
+                <!-- 剩餘機會與快速狀態列 -->
+                <div class="flex items-center justify-between text-xs text-gray-400 pt-2 border-t border-gray-800/80">
+                    <span>🎯 已使用次數：<b id="guess-count-badge" class="text-amber-400">0</b> / 6</span>
+                    <span class="text-gray-500">支援輸入「人名、英文名、國家或領域」搜尋</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🔍 搜尋輸入框 + 跳過換線索按鈕 -->
+        <div id="search-container" class="w-full max-w-xl relative flex flex-col sm:flex-row gap-2">
+            <div class="relative flex-1">
+                <input type="text" id="search-input" placeholder="載入歷史人物題庫中..." disabled
+                       class="w-full p-3.5 md:p-4 rounded-xl bg-gray-900 border-2 border-gray-800 text-white focus:outline-none focus:border-amber-500 text-base transition-all opacity-50 shadow-inner">
+                
+                <div id="autocomplete-list" class="absolute left-0 right-0 bg-gray-900 border border-gray-700 rounded-xl mt-2 max-h-64 overflow-y-auto hidden z-50 shadow-[0_10px_30px_rgba(0,0,0,0.7)] backdrop-blur-sm"></div>
+            </div>
+
+            <button id="skip-btn" onclick="gameModule.handleSkip()" disabled
+                    class="px-4 py-3.5 md:py-4 rounded-xl bg-gray-800 hover:bg-gray-700 active:scale-[0.98] text-amber-300 font-bold text-sm border border-gray-700 transition-all whitespace-nowrap opacity-50 flex items-center justify-center gap-1.5 shadow-md">
+                <span>⏭️</span> 跳過 (解鎖線索)
+            </button>
+        </div>
+
+        <!-- 📊 6 欄猜測歷史比對表 -->
+        <div class="w-full mt-1 bg-gray-900/40 p-3 md:p-5 rounded-2xl border border-gray-800/80 backdrop-blur-sm shadow-xl overflow-hidden">
+            <div class="grid-scroll-wrapper">
+                
+                <div class="grid-header tracking-wider">
+                    <div>人物</div><div>領域</div><div>國家/洲別</div><div>出生年</div><div>活躍時代</div><div>身分頭銜</div>
+                </div>
+                
+                <div id="grid-container" class="flex flex-col gap-2 md:gap-3"></div>
+            
+            </div> 
+        </div>
+
+        <!-- 💡 遊戲說明與圖例提示 -->
+        <div class="w-full bg-gray-900/60 border border-gray-800/80 rounded-2xl p-4 md:p-5 text-xs md:text-sm text-gray-400 flex flex-col gap-3 shadow-md">
+            <h3 class="font-bold text-gray-200 border-b border-gray-800 pb-2">💡 遊戲說明與圖例提示</h3>
+            
+            <div class="flex flex-col gap-2.5">
+                <div class="flex items-start gap-2">
+                    <span class="inline-block bg-green-600 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 rounded text-center min-w-[54px]">綠色</span>
+                    <span>：完全正確（該屬性與畫中歷史人物完全吻合）。</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="inline-block bg-yellow-500 text-black font-bold text-[10px] md:text-xs px-2 py-0.5 rounded text-center min-w-[54px]">黃色</span>
+                    <span>：部分正確／接近。
+                        在【領域】與【身分頭銜】代表標籤有部分重疊；
+                        在【國家/洲別】代表不同國家但位於<b>同一個洲</b>；
+                        在【出生年】代表與正確答案<b>相差 100 年以內</b>。
+                    </span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="inline-block bg-gray-800 text-gray-400 font-bold text-[10px] md:text-xs px-2 py-0.5 rounded text-center min-w-[54px] border border-gray-700/30">灰色</span>
+                    <span>：不吻合（在【出生年】代表相差超過 100 年，但仍會以 <b class="text-gray-200">↑ (答案更晚/更接近現代)</b> 或 <b class="text-gray-200">↓ (答案更早/更古老)</b> 指引方向）。</span>
+                </div>
+            </div>
+
+            <p class="text-[11px] md:text-xs text-gray-500 border-t border-gray-800/60 pt-2.5 mt-1">
+                📢 備註：肖像畫與歷史照片取自 Wikimedia Commons 公有領域圖庫。若看著畫像一時想不到人名，可在搜尋框輸入「音樂」、「軍事」、「法國」、「中國」等關鍵字快速篩選候選人物！
+            </p>
+        </div>
+
+        <!-- 🔍 點擊放大檢視高清畫像 Lightbox -->
+        <div id="image-lightbox" onclick="gameModule.closeImageLightbox()" class="fixed inset-0 bg-black/90 flex flex-col items-center justify-center p-4 hidden z-50 backdrop-blur-md cursor-zoom-out">
+            <img id="lightbox-img" src="" alt="放大檢視畫像" class="max-w-full max-h-[82vh] rounded-xl border-2 border-amber-500/40 shadow-2xl object-contain">
+            <p class="text-gray-400 text-xs mt-3">點擊任意處關閉放大檢視</p>
+        </div>
+
+        <!-- 🏆 結算與分享視窗 Modal -->
+        <div id="result-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 hidden z-50 backdrop-blur-md">
+            <div class="bg-gray-900 border-2 border-gray-800 rounded-2xl p-6 md:p-7 w-full max-w-md text-center shadow-[0_20px_50px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in duration-200 max-h-[92vh] overflow-y-auto">
+                <h2 id="modal-title" class="text-3xl font-black text-amber-400">🎉 推理成功！</h2>
+                
+                <div class="flex items-center justify-center gap-4 my-4 bg-gray-950/80 p-3 rounded-xl border border-gray-800 text-left">
+                    <img id="modal-portrait" src="" alt="答案肖像" class="w-16 h-20 object-cover object-top rounded-lg border border-amber-500/40 flex-shrink-0">
+                    <div>
+                        <p id="modal-desc" class="text-white font-bold text-base md:text-lg"></p>
+                        <p id="modal-fullname" class="text-gray-400 text-xs mt-0.5"></p>
+                        <p id="modal-meta" class="text-amber-400 text-xs mt-1 font-semibold"></p>
+                    </div>
+                </div>
+
+                <div id="modal-hero-hint" class="text-left text-gray-300 text-xs bg-gray-950/60 p-3 rounded-xl border border-gray-800/80 mb-3 space-y-1"></div>
+
+                <div id="emoji-preview" class="my-3 font-mono text-sm md:text-base leading-tight bg-gray-950 p-4 rounded-xl border border-gray-800 select-all max-h-40 overflow-y-auto"></div>
+                
+                <div class="flex flex-col gap-2">
+                    <button id="share-btn" class="w-full bg-amber-500 hover:bg-amber-600 text-black font-black py-3 rounded-xl transition-all shadow-lg active:scale-[0.98]">
+                        📋 複製戰績（分享到 Threads/脆）
+                    </button>
+                    <button id="next-game-btn" onclick="gameModule.startNewGame()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3 rounded-xl transition-all shadow-lg active:scale-[0.98] hidden">
+                        🔄 再玩一場
+                    </button>
+                </div>
+                
+                <button onclick="gameModule.closeModal()" class="mt-4 text-xs text-gray-500 hover:text-gray-300 hover:underline block mx-auto transition">關閉視窗</button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // 內建預備題庫（若透過伺服器開啟會優先讀取同目錄下的 ./figures.json，若直接雙擊打開 HTML 也能立刻試玩！）
+        const DEFAULT_FIGURES = [
+            { id: 1, name: "貝多芬", full_name: "路德維希·范·貝多芬 (Ludwig van Beethoven)", wiki_zh: "路德維希·范·貝多芬", wiki_en: "Ludwig_van_Beethoven", domain: "音樂、藝術", country: "德國", continent: "歐洲", birth_year: 1770, era: "18–19世紀 (近代)", titles: "作曲家、鋼琴家", 關鍵線索: "波昂出生並活躍於維也納、古典主義跨入浪漫主義的關鍵人物、中年開始逐漸失去聽力、代表作《命運交響曲》與《給愛麗絲》", image: "" },
+            { id: 2, name: "拿破崙", full_name: "拿破崙·波拿巴 (Napoleon Bonaparte)", wiki_zh: "拿破崙一世", wiki_en: "Napoleon", domain: "軍事、政治", country: "法國", continent: "歐洲", birth_year: 1769, era: "18–19世紀 (近代)", titles: "君主、軍事統帥、政治家", 關鍵線索: "出生於地中海的科西嘉島、砲兵軍官出身並於霧月政變掌權、頒布影響深遠的《民法典》、兵敗滑鐵盧並被流放至聖赫勒拿島", image: "" },
+            { id: 3, name: "達文西", full_name: "李奧納多·達文西 (Leonardo da Vinci)", wiki_zh: "列奥纳多·达·芬奇", wiki_en: "Leonardo_da_Vinci", domain: "藝術、科學", country: "義大利", continent: "歐洲", birth_year: 1452, era: "15–16世紀 (文藝復興)", titles: "畫家、發明家、解剖學家", 關鍵線索: "左撇子且習慣使用鏡像字寫筆記、繪有著名人體比例圖《維特魯威人》、文藝復興時期「博學者」的代表、代表畫作《最後的晚餐》與《蒙娜麗莎》", image: "" },
+            { id: 4, name: "莫札特", full_name: "沃夫岡·阿瑪迪斯·莫札特 (Wolfgang Amadeus Mozart)", wiki_zh: "沃尔夫冈·阿马德乌斯·莫扎特", wiki_en: "Wolfgang_Amadeus_Mozart", domain: "音樂、藝術", country: "奧地利", continent: "歐洲", birth_year: 1756, era: "17–18世紀 (啟蒙時代)", titles: "作曲家、鋼琴家", 關鍵線索: "出生於薩爾茨堡的音樂神童、35歲英年早逝且死因流傳多種傳說、維也納古典樂派三大巨匠之一、代表作歌劇《魔笛》與《土耳其進行曲》", image: "" },
+            { id: 5, name: "梵谷", full_name: "文森·梵谷 (Vincent van Gogh)", wiki_zh: "文森特·梵高", wiki_en: "Vincent_van_Gogh", domain: "藝術", country: "荷蘭", continent: "歐洲", birth_year: 1853, era: "18–19世紀 (近代)", titles: "畫家", 關鍵線索: "曾擔任傳教士與畫商但屢遭挫折、與高更在法國亞爾同住期間發生割耳事件、後印象派代表人物且生前畫作極少售出、代表作《星夜》與《向日葵》", image: "" },
+            { id: 6, name: "畢卡索", full_name: "巴勃羅·畢卡索 (Pablo Picasso)", wiki_zh: "巴勃罗·毕加索", wiki_en: "Pablo_Picasso", domain: "藝術", country: "西班牙", continent: "歐洲", birth_year: 1881, era: "20世紀 (現代)", titles: "畫家、雕塑家", 關鍵線索: "創作生涯曾歷經「藍色時期」與「粉紅時期」、立體主義畫派的創始人、曾繪製和平鴿圖案享譽國際、代表作反戰巨幅畫作《格爾尼卡》與《亞維農的少女》", image: "" },
+            { id: 7, name: "牛頓", full_name: "艾薩克·牛頓 (Isaac Newton)", wiki_zh: "艾萨克·牛顿", wiki_en: "Isaac_Newton", domain: "科學、數學", country: "英國", continent: "歐洲", birth_year: 1643, era: "17–18世紀 (啟蒙時代)", titles: "物理學家、數學家、天文學家", 關鍵線索: "曾任英國皇家造幣廠廠長與皇家學會會長、與萊布尼茨各自獨立發展出微積分、著有《自然哲學的數學原理》、提出三大運動定律與萬有引力定律", image: "" },
+            { id: 8, name: "愛因斯坦", full_name: "阿爾伯特·愛因斯坦 (Albert Einstein)", wiki_zh: "阿尔伯特·爱因斯坦", wiki_en: "Albert_Einstein", domain: "科學", country: "德國", continent: "歐洲", birth_year: 1879, era: "20世紀 (現代)", titles: "物理學家", 關鍵線索: "早年曾在瑞士伯恩專利局擔任審查員、因解釋「光電效應」獲得1921年諾貝爾物理學獎、一頭蓬鬆白髮與吐舌頭照片深植人心、提出狹義與廣義相對論及質能公式 E=mc²", image: "" },
+            { id: 9, name: "居禮夫人", full_name: "瑪麗·居禮 (Marie Curie)", wiki_zh: "玛丽·居里", wiki_en: "Marie_Curie", domain: "科學", country: "波蘭", continent: "歐洲", birth_year: 1867, era: "20世紀 (現代)", titles: "物理學家、化學家", 關鍵線索: "出生於華沙後赴法國巴黎索邦大學求學、一戰期間組織移動式X光車協助戰地醫療、歷史上首位獲得兩次不同領域諾貝爾獎的科學家、發現放射性元素「釙」與「鐳」", image: "" },
+            { id: 10, name: "達爾文", full_name: "查爾斯·達爾文 (Charles Darwin)", wiki_zh: "查尔斯·达尔文", wiki_en: "Charles_Darwin", domain: "科學", country: "英國", continent: "歐洲", birth_year: 1809, era: "18–19世紀 (近代)", titles: "生物學家、博物學家", 關鍵線索: "年輕時曾隨「小獵犬號」進行為期五年的環球航行、在加拉巴哥群島觀察雀鳥喙形的差異、提出「物競天擇，適者生存」演化機制、代表著作《物種起源》", image: "" },
+            { id: 11, name: "伽利略", full_name: "伽利略·伽利萊 (Galileo Galilei)", wiki_zh: "伽利略·伽利莱", wiki_en: "Galileo_Galilei", domain: "科學", country: "義大利", continent: "歐洲", birth_year: 1564, era: "17–18世紀 (啟蒙時代)", titles: "天文學家、物理學家", 關鍵線索: "改良折射式望遠鏡並首次發現木星的四顆大型衛星、相傳曾在比薩斜塔進行自由落體實驗、因支持哥白尼「日心說」遭宗教裁判所軟禁、被譽為「近代觀測天文學與現代物理學之父」", image: "" },
+            { id: 12, name: "特斯拉", full_name: "尼古拉·特斯拉 (Nikola Tesla)", wiki_zh: "尼古拉·特斯拉", wiki_en: "Nikola_Tesla", domain: "科學、發明", country: "塞爾維亞", continent: "歐洲", birth_year: 1856, era: "18–19世紀 (近代)", titles: "發明家、工程師、物理學家", 關鍵線索: "出生於奧地利帝國治下的斯米良並後移居美國、曾與愛迪生爆發著名的「電流大戰」、國際單位制中的「磁通量密度」單位以他命名、現代交流電（AC）電力系統的主要奠基者", image: "" },
+            { id: 13, name: "愛迪生", full_name: "湯瑪斯·愛迪生 (Thomas Edison)", wiki_zh: "托马斯·爱迪生", wiki_en: "Thomas_Edison", domain: "發明、商業", country: "美國", continent: "美洲", birth_year: 1847, era: "18–19世紀 (近代)", titles: "發明家、企業家", 關鍵線索: "在紐澤西州門洛帕克建立全球首座工業研究實驗室、擁有超過一千項美國專利並創辦奇異公司（GE）前身、發明留聲機與活動電影放映機、改良並商業化普及白熾電燈泡", image: "" },
+            { id: 14, name: "莎士比亞", full_name: "威廉·莎士比亞 (William Shakespeare)", wiki_zh: "威廉·莎士比亚", wiki_en: "William_Shakespeare", domain: "文學、藝術", country: "英國", continent: "歐洲", birth_year: 1564, era: "15–16世紀 (文藝復興)", titles: "文學家、劇作家、詩人", 關鍵線索: "出生於亞馮河畔史特拉福並活躍於倫敦環球劇場、創作了154首十四行詩與30多部戲劇、留下名言「To be, or not to be」、代表作四大悲劇《哈姆雷特》《馬克白》與《羅密歐與茱麗葉》", image: "" },
+            { id: 15, name: "林肯", full_name: "亞伯拉罕·林肯 (Abraham Lincoln)", wiki_zh: "亚伯拉罕·林肯", wiki_en: "Abraham_Lincoln", domain: "政治", country: "美國", continent: "美洲", birth_year: 1809, era: "18–19世紀 (近代)", titles: "政治家、國家元首", 關鍵線索: "身材高䠷且常戴黑色高禮帽、帶領北方聯邦打贏美國南北戰爭、在蓋茲堡演說中提出「民有、民治、民享」政府、簽署《解放奴隸宣言》的第16任美國總統", image: "" },
+            { id: 16, name: "華盛頓", full_name: "喬治·華盛頓 (George Washington)", wiki_zh: "乔治·华盛顿", wiki_en: "George_Washington", domain: "軍事、政治", country: "美國", continent: "美洲", birth_year: 1732, era: "17–18世紀 (啟蒙時代)", titles: "軍事統帥、政治家、國家元首", 關鍵線索: "擔任大陸軍總司令率領殖民地贏得獨立戰爭、主持1787年制憲會議並全票當選總統、做滿兩屆後主動放棄連任樹立民主憲政典範、美國開國元勳與第一任總統（美金一元的肖像人物）", image: "" },
+            { id: 17, name: "凱撒", full_name: "尤利烏斯·凱撒 (Julius Caesar)", wiki_zh: "尤利烏斯·凱撒", wiki_en: "Julius_Caesar", domain: "軍事、政治", country: "古羅馬", continent: "歐洲", birth_year: -100, era: "西元500年前 (上古時代)", titles: "軍事統帥、政治家", 關鍵線索: "與龐培、克拉蘇結成「前三頭同盟」、率軍征服高盧並跨越盧比孔河引發內戰、留下捷報「我來，我見，我征服 (Veni, vidi, vici)」、受封終身獨裁官後於元老院遭布魯圖斯等人刺殺", image: "" },
+            { id: 18, name: "亞歷山大帝", full_name: "亞歷山大大帝 (Alexander the Great)", wiki_zh: "亚历山大大帝", wiki_en: "Alexander_the_Great", domain: "軍事、政治", country: "古希臘", continent: "歐洲", birth_year: -356, era: "西元500年前 (上古時代)", titles: "君主、軍事統帥", 關鍵線索: "少年時曾師從大哲學家亞里斯多德、相傳曾一劍劈開無人能解的「戈爾迪之結」、年僅20歲繼承馬其頓王位並滅亡波斯帝國、建立橫跨歐亞非三洲大帝國卻於32歲在巴比倫病逝", image: "" },
+            { id: 19, name: "克麗奧佩脫拉", full_name: "克麗奧佩脫拉七世 / 埃及豔后 (Cleopatra)", wiki_zh: "克娄巴特拉七世", wiki_en: "Cleopatra", domain: "政治", country: "古埃及", continent: "非洲", birth_year: -69, era: "西元500年前 (上古時代)", titles: "君主、政治家", 關鍵線索: "出身希臘裔托勒密王朝且精通多種語言、曾先後與凱撒及馬克·安東尼結盟與相戀、在亞克興角海戰失利後不願成為屋大維的俘虜、古埃及托勒密王朝最後一任女法老（俗稱埃及豔后）", image: "" },
+            { id: 20, name: "貞德", full_name: "聖女貞德 (Joan of Arc)", wiki_zh: "圣女贞德", wiki_en: "Joan_of_Arc", domain: "軍事、宗教", country: "法國", continent: "歐洲", birth_year: 1412, era: "500–1400年 (中世紀)", titles: "軍事統帥、宗教人物", 關鍵線索: "出生於法國農村並自稱獲得天使長米迦勒等神聖啟示、在英法百年戰爭期間率軍解除「奧爾良之圍」、護送查理七世前往蘭斯主教座堂加冕、遭俘虜後於19歲被判處火刑並於後世封聖", image: "" },
+            { id: 41, name: "孔子", full_name: "孔丘 / 仲尼 (Confucius)", wiki_zh: "孔子", wiki_en: "Confucius", domain: "哲學、教育", country: "中國", continent: "亞洲", birth_year: -551, era: "西元500年前 (上古時代)", titles: "哲學家、思想家、教育家", 關鍵線索: "春秋時期魯國人，曾帶領弟子周遊列國十四年、主張「有教無類」與「因材施教」，相傳門下有弟子三千、核心思想為「仁」與「禮」，言行由弟子編纂為《論語》、儒家學派創始人，被後世尊為「至聖先師」", image: "" },
+            { id: 42, name: "秦始皇", full_name: "嬴政 (Qin Shi Huang)", wiki_zh: "秦始皇", wiki_en: "Qin_Shi_Huang", domain: "政治、軍事", country: "中國", continent: "亞洲", birth_year: -259, era: "西元500年前 (上古時代)", titles: "君主、政治家", 關鍵線索: "先後消滅韓、趙、魏、楚、燕、齊六國結束戰國時代、推行「書同文，車同軌」、統一貨幣與度量衡並修築萬里長城、自認功過三皇五帝而首創「皇帝」稱號、陵墓陪葬坑出土了震驚世界的「兵馬俑」", image: "" },
+            { id: 43, name: "諸葛亮", full_name: "諸葛亮 / 孔明 (Zhuge Liang)", wiki_zh: "诸葛亮", wiki_en: "Zhuge_Liang", domain: "政治、軍事", country: "中國", continent: "亞洲", birth_year: 181, era: "西元500年前 (上古時代)", titles: "政治家、軍事統帥、宰相/軍師", 關鍵線索: "早年隱居隆中，自比管仲、樂毅，人稱「臥龍」、劉備三顧茅廬請出山時提出《隆中對》三分天下戰略、北伐期間撰寫千古名篇《出師表》並發明木牛流馬、三國時期蜀漢丞相，手執羽扇的智謀化身", image: "" },
+            { id: 44, name: "曹操", full_name: "曹操 / 孟德 (Cao Cao)", wiki_zh: "曹操", wiki_en: "Cao_Cao", domain: "軍事、政治、文學", country: "中國", continent: "亞洲", birth_year: 155, era: "西元500年前 (上古時代)", titles: "軍事統帥、政治家、詩人", 關鍵線索: "東漢末年迎漢獻帝遷都許昌，「挾天子以令諸侯」、在官渡之戰以少勝多擊敗袁紹統一中國北方、與曹丕、曹植父子三人合稱建安文學「三曹」，著有《短歌行》、曹魏政權奠基者，被評為「治世之能臣，亂世之奸雄」", image: "" },
+            { id: 47, name: "李白", full_name: "李白 / 太白 (Li Bai)", wiki_zh: "李白", wiki_en: "Li_Bai", domain: "文學", country: "中國", continent: "亞洲", birth_year: 701, era: "500–1400年 (中世紀)", titles: "詩人、文學家", 關鍵線索: "自號「青蓮居士」，一生熱愛游歷名山大川、飲酒與劍術、曾獲唐玄宗召入長安供奉翰林，相傳有「高力士脫靴、楊貴妃研墨」的軼事、與杜甫並稱「李杜」，為浪漫主義詩歌代表人物、被尊稱為「詩仙」，代表作《將進酒》《靜夜思》與《蜀道難》", image: "" },
+            { id: 48, name: "蘇軾", full_name: "蘇軾 / 東坡 (Su Shi)", wiki_zh: "苏轼", wiki_en: "Su_Shi", domain: "文學、藝術、政治", country: "中國", continent: "亞洲", birth_year: 1037, era: "500–1400年 (中世紀)", titles: "文學家、詩人、書法家、政治家", 關鍵線索: "與父親蘇洵、弟弟蘇轍同列「唐宋古文八大家」、因「烏臺詩案」被貶黃州，期間開荒種地並自號「東坡居士」、書法《寒食帖》被譽為天下第三行書、北宋豪放派詞人代表，名作包含《念奴嬌·赤壁懷古》《水調歌頭》與《赤壁賦》", image: "" },
+            { id: 52, name: "孫中山", full_name: "孫文 / 孫逸仙 (Sun Yat-sen)", wiki_zh: "孫中山", wiki_en: "Sun_Yat-sen", domain: "政治、思想", country: "中國", continent: "亞洲", birth_year: 1866, era: "20世紀 (現代)", titles: "政治家、革命家、國家元首、醫師", 關鍵線索: "早年於香港西醫書院學醫，後創立興中會與中國同盟會、提出「民族、民權、民生」三民主義與五權憲法學說、留有題詞「天下為公」與遺囑「革命尚未成功，同志仍須努力」、領導辛亥革命推翻滿清帝制，擔任中華民國臨時大總統", image: "" },
+            { id: 53, name: "織田信長", full_name: "織田信長 (Oda Nobunaga)", wiki_zh: "織田信長", wiki_en: "Oda_Nobunaga", domain: "軍事、政治", country: "日本", continent: "亞洲", birth_year: 1534, era: "15–16世紀 (文藝復興)", titles: "軍事統帥、政治家", 關鍵線索: "年輕時行事不羈被稱為「尾張的大傻瓜」，於桶狹間之戰以少勝多擊敗今川義元、重用火繩槍（長篠之戰）並推行「樂市樂座」活絡商業、使用「天下布武」印章並自稱「第六天魔王」、日本戰國三英傑之一，於「本能寺之變」中身亡", image: "" },
+            { id: 54, name: "德川家康", full_name: "德川家康 (Tokugawa Ieyasu)", wiki_zh: "德川家康", wiki_en: "Tokugawa_Ieyasu", domain: "軍事、政治", country: "日本", continent: "亞洲", birth_year: 1543, era: "17–18世紀 (啟蒙時代)", titles: "軍事統帥、政治家", 關鍵線索: "幼年曾長期作為人質，以極度隱忍與注重養生長壽著稱、在1600年「關原之戰」擊敗石田三成率領的西軍掌握霸權、通過大阪冬之陣與夏之陣消滅豐臣氏，結束日本戰國時代、開創延續260多年的「江戶幕府」首任征夷大將軍", image: "" },
+            { id: 55, name: "坂本龍馬", full_name: "坂本龍馬 (Sakamoto Ryōma)", wiki_zh: "坂本龍馬", wiki_en: "Sakamoto_Ryōma", domain: "政治", country: "日本", continent: "亞洲", birth_year: 1836, era: "18–19世紀 (近代)", titles: "政治家、維新志士", 關鍵線索: "土佐藩脫藩浪人，習慣在和服外穿著靴子、在長崎創立日本第一家近代商社兼海援隊「龜山社中」、奔走促成原本敵對的薩摩藩與長州藩締結「薩長同盟」、提出《船中八策》促成「大政奉還」，卻於31歲在京都近江屋遭暗殺", image: "" }
+        ];
+
+        const gameModule = (function() {
+            let PLAYERS = [];
+            let TODAY_ANSWER = null;
+            let guessHistory = [];
+            let isGameOver = false;
+            let currentGameMode = 'daily';
+            let answerClueList = [];
+            let currentPortraitUrl = '';
+
+            const searchInput = document.getElementById('search-input');
+            const skipBtn = document.getElementById('skip-btn');
+            const autocompleteList = document.getElementById('autocomplete-list');
+            const gridContainer = document.getElementById('grid-container');
+            const resultModal = document.getElementById('result-modal');
+            const emojiPreview = document.getElementById('emoji-preview');
+            const shareBtn = document.getElementById('share-btn');
+            const nextGameBtn = document.getElementById('next-game-btn');
+            const gameSubtitle = document.getElementById('game-subtitle');
+            const portraitImg = document.getElementById('portrait-img');
+            const portraitLoading = document.getElementById('portrait-loading');
+
+            function getHashCode(str) {
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    hash = (hash << 5) - hash + str.charCodeAt(i);
+                    hash |= 0;
+                }
+                return Math.abs(hash);
+            }
+
+            function formatYear(year) {
+                if (year === undefined || year === null || year === '') return '未知';
+                const num = Number(year);
+                return num < 0 ? `前${Math.abs(num)}年` : `${num}年`;
+            }
+
+            // 產生 SVG 備用頭像（當無網路或維基圖片載入失敗時使用）
+            function createFallbackSvgDataUri() {
+                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" viewBox="0 0 400 500">
+                    <defs>
+                        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#1e293b"/>
+                            <stop offset="100%" stop-color="#0f172a"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="400" height="500" fill="url(#bg)"/>
+                    <circle cx="200" cy="185" r="70" fill="#334155"/>
+                    <path d="M90 420 C90 310 310 310 310 420 Z" fill="#334155"/>
+                    <text x="200" y="460" text-anchor="middle" fill="#fbbf24" font-size="20" font-family="sans-serif" font-weight="bold">🏛️ 歷史神秘人物</text>
+                </svg>`;
+                return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+            }
+
+            // 自動載入高清肖像：優先使用 figures.json 內的 image 欄位，若為空則即時向 Wikipedia REST API 抓取 800px 高清畫像
+            async function loadPortraitForAnswer(figure) {
+                portraitLoading.classList.remove('hidden');
+
+                if (figure.image && figure.image.trim() !== '') {
+                    currentPortraitUrl = figure.image;
+                    portraitImg.src = currentPortraitUrl;
+                    return;
+                }
+
+                // 依序嘗試英文維基與中文維基 REST API（支援 CORS 跨域直接抓取）
+                const candidates = [
+                    { lang: 'en', title: figure.wiki_en },
+                    { lang: 'zh', title: figure.wiki_zh || figure.name }
+                ];
+
+                for (const item of candidates) {
+                    if (!item.title) continue;
+                    try {
+                        const url = `https://${item.lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(item.title)}`;
+                        const res = await fetch(url);
+                        if (res.ok) {
+                            const data = await res.json();
+                            let imgUrl = '';
+                            if (data.thumbnail && data.thumbnail.source) {
+                                imgUrl = data.thumbnail.source.replace(/\/\d+px-/, '/800px-');
+                            } else if (data.originalimage && data.originalimage.source) {
+                                imgUrl = data.originalimage.source;
+                            }
+                            if (imgUrl) {
+                                figure.image = imgUrl;
+                                currentPortraitUrl = imgUrl;
+                                portraitImg.src = imgUrl;
+                                return;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Wikipedia API 載入嘗試失敗:', item, e);
+                    }
+                }
+
+                handleImageError();
+            }
+
+            function handleImageError() {
+                portraitLoading.classList.add('hidden');
+                if (TODAY_ANSWER) {
+                    currentPortraitUrl = createFallbackSvgDataUri();
+                    portraitImg.src = currentPortraitUrl;
+                }
+            }
+
+            function openImageLightbox() {
+                if (!currentPortraitUrl) return;
+                document.getElementById('lightbox-img').src = currentPortraitUrl;
+                document.getElementById('image-lightbox').classList.remove('hidden');
+            }
+
+            function closeImageLightbox() {
+                document.getElementById('image-lightbox').classList.add('hidden');
+            }
+
+            async function initGame() {
+                try {
+                    const response = await fetch('./figures.json');
+                    if (response.ok) {
+                        PLAYERS = await response.json();
+                    } else {
+                        PLAYERS = DEFAULT_FIGURES;
+                    }
+                } catch (error) {
+                    console.info("未偵測到外部 figures.json，自動啟用內建題庫 (DEFAULT_FIGURES)");
+                    PLAYERS = DEFAULT_FIGURES;
+                }
+
+                startNewGame();
+
+                searchInput.disabled = false;
+                searchInput.classList.remove('opacity-50');
+                skipBtn.disabled = false;
+                skipBtn.classList.remove('opacity-50');
+
+                setupSearchListener();
+                setupClickOutsideListener();
+            }
+
+            function startNewGame() {
+                closeModal();
+                guessHistory = [];
+                isGameOver = false;
+                gridContainer.innerHTML = '';
+                searchInput.value = '';
+                searchInput.disabled = false;
+                skipBtn.disabled = false;
+                skipBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+                document.getElementById('guess-count-badge').innerText = '0';
+
+                if (currentGameMode === 'daily') {
+                    const todayStr = new Date().toISOString().slice(0, 10);
+                    const seed = getHashCode(todayStr);
+                    TODAY_ANSWER = PLAYERS[seed % PLAYERS.length];
+                    gameSubtitle.innerText = "凝視歷史名人的高清肖像，推理出畫中人物的真實身分（每日更新）";
+                    searchInput.placeholder = "輸入歷史人物、領域或國家（例：貝多芬、軍事、法國）...";
+                } else {
+                    const randomIndex = Math.floor(Math.random() * PLAYERS.length);
+                    TODAY_ANSWER = PLAYERS[randomIndex];
+                    gameSubtitle.innerText = "無限遊玩模式：隨機歷史名人肖像已重置！";
+                    searchInput.placeholder = "輸入歷史人物、領域或國家，盡情推理吧！";
+                }
+
+                // 解析今日人物的漸進式關鍵線索
+                const rawClues = TODAY_ANSWER["關鍵線索"] || "無";
+                answerClueList = rawClues.split('、').map(c => c.trim()).filter(Boolean);
+                if (answerClueList.length === 0) answerClueList = ["無額外文字線索"];
+
+                document.getElementById('hint-count').innerText = '0';
+                document.getElementById('hint-total').innerText = answerClueList.length;
+                document.getElementById('hint-status-text').innerText = '📢 每猜錯一次或點擊跳過，將解鎖一條新事蹟';
+                document.getElementById('hero-hint-display').innerHTML = `
+                    <p class="text-gray-400 text-sm">👀 請先仔細觀察左側畫像的服飾、畫風或神態！若認不出是誰，可直接輸入任何一位歷史人物來比對「領域、洲別、年代」，或按下下方「跳過」直接換取第一條線索。</p>
+                `;
+
+                // 載入今日答案的高清畫像
+                loadPortraitForAnswer(TODAY_ANSWER);
+            }
+
+            function switchMode(mode) {
+                if (currentGameMode === mode) return;
+                currentGameMode = mode;
+
+                const dailyBtn = document.getElementById('mode-daily');
+                const endlessBtn = document.getElementById('mode-endless');
+
+                if (mode === 'daily') {
+                    dailyBtn.className = "px-3 py-1.5 rounded-lg bg-amber-500 text-black transition-all";
+                    endlessBtn.className = "px-3 py-1.5 rounded-lg text-gray-400 hover:text-white transition-all";
+                    nextGameBtn.classList.add('hidden');
+                } else {
+                    endlessBtn.className = "px-3 py-1.5 rounded-lg bg-amber-500 text-black transition-all";
+                    dailyBtn.className = "px-3 py-1.5 rounded-lg text-gray-400 hover:text-white transition-all";
+                    nextGameBtn.classList.remove('hidden');
+                }
+                startNewGame();
+            }
+
+            function setupSearchListener() {
+                const triggerSearch = function() {
+                    if (isGameOver) return;
+                    const query = searchInput.value.trim().toLowerCase();
+                    autocompleteList.innerHTML = '';
+
+                    if (!query) {
+                        autocompleteList.classList.add('hidden');
+                        return;
+                    }
+
+                    // 支援搜尋：人物中文名、全名/英文名、領域、國家、洲別、身分頭銜
+                    const filtered = PLAYERS.filter(p => {
+                        const hay = `${p.name} ${p.full_name || ''} ${p.domain} ${p.country} ${p.continent} ${p.titles}`.toLowerCase();
+                        return hay.includes(query);
+                    });
+
+                    if (filtered.length > 0) {
+                        filtered.forEach(person => {
+                            const alreadyGuessed = guessHistory.some(g => g.id === person.id);
+                            const item = document.createElement('div');
+                            item.className = `suggestion-item text-white transition-colors ${alreadyGuessed ? 'opacity-40 cursor-not-allowed' : ''}`;
+
+                            item.innerHTML = `
+                                <div class="flex flex-col">
+                                    <span class="font-bold text-gray-100">${person.name} ${alreadyGuessed ? '<span class="text-xs text-gray-400">(已猜過)</span>' : ''}</span>
+                                    <span class="text-[11px] text-gray-400">${person.full_name || ''}</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 flex-shrink-0">
+                                    <span class="text-xs text-amber-300 bg-amber-950/50 px-2 py-0.5 rounded-md border border-amber-800/40">${person.domain}</span>
+                                    <span class="text-xs text-blue-300 bg-blue-950/50 px-2 py-0.5 rounded-md border border-blue-800/40">${person.country}</span>
+                                </div>
+                            `;
+
+                            if (!alreadyGuessed) {
+                                item.addEventListener('click', () => {
+                                    handleGuess(person);
+                                    searchInput.value = '';
+                                    autocompleteList.classList.add('hidden');
+                                });
+                            }
+                            autocompleteList.appendChild(item);
+                        });
+                        autocompleteList.classList.remove('hidden');
+                    } else {
+                        autocompleteList.classList.add('hidden');
+                    }
+                };
+
+                searchInput.addEventListener('input', triggerSearch);
+                searchInput.addEventListener('focus', triggerSearch);
+            }
+
+            function setupClickOutsideListener() {
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('#search-container')) {
+                        autocompleteList.classList.add('hidden');
+                    }
+                });
+            }
+
+            // 更新關鍵事蹟漸進式提示面板
+            function updateCluePanel() {
+                const count = guessHistory.length;
+                const visibleCount = Math.min(count, answerClueList.length);
+                document.getElementById('hint-count').innerText = visibleCount;
+                document.getElementById('guess-count-badge').innerText = count;
+
+                const revealedClues = answerClueList.slice(0, visibleCount);
+                if (revealedClues.length > 0) {
+                    let listHtml = '<ul class="space-y-1.5">';
+                    revealedClues.forEach((clue, idx) => {
+                        const isNewest = idx === revealedClues.length - 1;
+                        listHtml += `
+                            <li class="flex items-start gap-2 text-xs md:text-sm ${isNewest ? 'text-amber-300 font-bold' : 'text-gray-300'}">
+                                <span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded px-1.5 py-0.5 text-[11px] flex-shrink-0">線索 ${idx + 1}</span>
+                                <span>${clue}</span>
+                            </li>
+                        `;
+                    });
+                    listHtml += '</ul>';
+
+                    if (visibleCount < answerClueList.length) {
+                        document.getElementById('hint-status-text').innerText = `⚡ 已解鎖 ${visibleCount}/${answerClueList.length} 條線索`;
+                    } else {
+                        document.getElementById('hint-status-text').innerText = "✅ 已解鎖全部關鍵事蹟線索";
+                    }
+                    document.getElementById('hero-hint-display').innerHTML = listHtml;
+                }
+            }
+
+            // 檢查由頓號「、」分隔的多標籤屬性比對狀態 ('correct' | 'present' | 'absent')
+            function compareMultiTag(guessStr, answerStr) {
+                if (guessStr === answerStr) return 'correct';
+                const guessArr = (guessStr || '').split('、').map(s => s.trim()).filter(Boolean);
+                const answerArr = (answerStr || '').split('、').map(s => s.trim()).filter(Boolean);
+                const hasOverlap = guessArr.some(tag => answerArr.includes(tag));
+                return hasOverlap ? 'present' : 'absent';
+            }
+
+            function getStatusStyle(status) {
+                if (status === 'correct') return { color: "bg-green-600 text-white", emoji: "🟩" };
+                if (status === 'present') return { color: "bg-yellow-500 text-black", emoji: "🟨" };
+                return { color: "bg-gray-800 border border-gray-700/50 text-gray-300", emoji: "⬛" };
+            }
+
+            // 玩家點擊「跳過」換取下一條線索
+            function handleSkip() {
+                if (isGameOver) return;
+
+                const row = document.createElement('div');
+                row.className = "guess-row transition-all duration-300";
+
+                const skipEmojis = "⏭️⬛⬛⬛⬛";
+                guessHistory.push({ id: `skip_${guessHistory.length}`, emojis: skipEmojis });
+
+                row.innerHTML = `
+                    <div class="grid-cell-lol bg-gray-800/90 border border-amber-500/40 text-amber-300">⏭️ 跳過回合</div>
+                    <div class="grid-cell-lol bg-gray-900/80 border border-gray-800 text-gray-500">—</div>
+                    <div class="grid-cell-lol bg-gray-900/80 border border-gray-800 text-gray-500">—</div>
+                    <div class="grid-cell-lol bg-gray-900/80 border border-gray-800 text-gray-500">—</div>
+                    <div class="grid-cell-lol bg-gray-900/80 border border-gray-800 text-gray-500">—</div>
+                    <div class="grid-cell-lol bg-gray-900/80 border border-gray-800 text-gray-400 text-xs">已解鎖新事蹟線索 💡</div>
+                `;
+
+                gridContainer.prepend(row);
+                updateCluePanel();
+
+                if (guessHistory.length >= 6) {
+                    isGameOver = true;
+                    showResult(false);
+                }
+            }
+
+            function handleGuess(person) {
+                if (isGameOver || guessHistory.some(g => g.id === person.id)) return;
+
+                const row = document.createElement('div');
+                row.className = "guess-row transition-all duration-300";
+
+                // 1. 領域比對（支援多重領域部分重疊黃燈）
+                const domainStatus = compareMultiTag(person.domain, TODAY_ANSWER.domain);
+                const domainData = getStatusStyle(domainStatus);
+
+                // 2. 國家與洲別比對（同國綠燈、不同國但同洲黃燈、不同洲灰燈）
+                let countryStatus = 'absent';
+                if (person.country === TODAY_ANSWER.country) {
+                    countryStatus = 'correct';
+                } else if (person.continent && person.continent === TODAY_ANSWER.continent) {
+                    countryStatus = 'present';
+                }
+                const countryData = getStatusStyle(countryStatus);
+
+                // 3. 出生年比對（完全相同綠燈、相差100年內黃燈、超過100年灰燈，皆附帶高低箭頭）
+                const yearDiff = Math.abs(person.birth_year - TODAY_ANSWER.birth_year);
+                let yearStatus = 'absent';
+                if (person.birth_year === TODAY_ANSWER.birth_year) {
+                    yearStatus = 'correct';
+                } else if (yearDiff <= 100) {
+                    yearStatus = 'present';
+                }
+                const yearArrow = person.birth_year < TODAY_ANSWER.birth_year ? " ↑" : (person.birth_year > TODAY_ANSWER.birth_year ? " ↓" : "");
+                const yearData = getStatusStyle(yearStatus);
+
+                // 4. 活躍時代比對
+                const eraStatus = person.era === TODAY_ANSWER.era ? 'correct' : 'absent';
+                const eraData = getStatusStyle(eraStatus);
+
+                // 5. 身分頭銜比對（支援多重標籤部分重疊黃燈）
+                const titleStatus = compareMultiTag(person.titles, TODAY_ANSWER.titles);
+                const titleData = getStatusStyle(titleStatus);
+
+                const currentEmojis = `${domainData.emoji}${countryData.emoji}${yearData.emoji}${eraData.emoji}${titleData.emoji}`;
+                guessHistory.push({ id: person.id, emojis: currentEmojis });
+
+                row.innerHTML = `
+                    <div class="grid-cell-lol bg-gray-800/80 border border-gray-700/30 text-white" title="${person.full_name || person.name}">${person.name}</div>
+                    <div class="grid-cell-lol ${domainData.color} shadow-md" title="${person.domain}">${person.domain}</div>
+                    <div class="grid-cell-lol ${countryData.color} shadow-md" title="${person.country} (${person.continent})">${person.country}<br><span class="text-[10px] opacity-80">(${person.continent})</span></div>
+                    <div class="grid-cell-lol ${yearData.color} shadow-md">${formatYear(person.birth_year)}${yearArrow}</div>
+                    <div class="grid-cell-lol ${eraData.color} shadow-md" title="${person.era}">${person.era}</div>
+                    <div class="grid-cell-lol ${titleData.color} shadow-md" title="${person.titles}">${person.titles}</div>
+                `;
+
+                gridContainer.prepend(row);
+                updateCluePanel();
+
+                if (person.id === TODAY_ANSWER.id) {
+                    isGameOver = true;
+                    showResult(true);
+                } else if (guessHistory.length >= 6) {
+                    isGameOver = true;
+                    showResult(false);
+                }
+            }
+
+            function showResult(isWin) {
+                searchInput.disabled = true;
+                skipBtn.disabled = true;
+                skipBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+                document.getElementById('modal-title').innerText = isWin ? "🎉 推理成功！" : "💥 挑戰結束！";
+                document.getElementById('modal-title').className = isWin ? "text-3xl font-black text-amber-400" : "text-3xl font-black text-red-500";
+                document.getElementById('modal-portrait').src = currentPortraitUrl;
+                document.getElementById('modal-desc').innerText = isWin
+                    ? `你花了 ${guessHistory.length} 次認出：${TODAY_ANSWER.name}！`
+                    : `正確答案是：${TODAY_ANSWER.name}`;
+                document.getElementById('modal-fullname').innerText = TODAY_ANSWER.full_name || '';
+                document.getElementById('modal-meta').innerText = `${TODAY_ANSWER.country} (${TODAY_ANSWER.continent}) ｜ ${formatYear(TODAY_ANSWER.birth_year)}出生 ｜ ${TODAY_ANSWER.domain}`;
+
+                let allCluesHtml = '<div class="font-bold text-amber-400 mb-1">📜 人物完整事蹟與代表作：</div>';
+                answerClueList.forEach((c) => {
+                    allCluesHtml += `<div>• ${c}</div>`;
+                });
+                document.getElementById('modal-hero-hint').innerHTML = allCluesHtml;
+
+                const todayStrTW = new Date().toLocaleDateString('zh-TW');
+                const modeTag = currentGameMode === 'daily' ? '每日挑戰' : '無限遊玩';
+
+                let emojiText = `🏛️ Historydle 歷史名人猜謎 (${modeTag}) #${todayStrTW}\n`;
+                emojiText += `戰績: ${isWin ? guessHistory.length : 'X'}/6\n\n`;
+
+                guessHistory.forEach(g => { emojiText += `${g.emojis}\n`; });
+
+                emojiText += `\n點此挑戰 👉 ${window.location.href}`;
+                emojiPreview.innerText = emojiText.replace(/\n/g, '\r\n');
+
+                shareBtn.onclick = function() {
+                    navigator.clipboard.writeText(emojiText).then(() => {
+                        shareBtn.innerText = "✅ 複製成功！快去發脆吧！";
+                        setTimeout(() => { shareBtn.innerText = "📋 複製戰績（分享到 Threads/脆）"; }, 2000);
+                    }).catch(() => {
+                        alert("瀏覽器不支援自動複製，請手動複製方塊區文字。");
+                    });
+                };
+
+                setTimeout(() => { resultModal.classList.remove('hidden'); }, 700);
+            }
+
+            function closeModal() { resultModal.classList.add('hidden'); }
+
+            initGame();
+
+            return {
+                switchMode: switchMode,
+                startNewGame: startNewGame,
+                closeModal: closeModal,
+                handleSkip: handleSkip,
+                openImageLightbox: openImageLightbox,
+                closeImageLightbox: closeImageLightbox,
+                handleImageError: handleImageError
+            };
+        })();
+    </script>
+</body>
+</html>
